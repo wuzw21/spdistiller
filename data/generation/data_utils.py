@@ -63,6 +63,8 @@ def get_gen_dataset(dataset_name, max_sample=None, tokenizer=None):
         return get_wiki_dataset(max_sample)
     elif dataset_name == "repajama":
         return get_redpajama_dataset(max_sample)
+    elif dataset_name == "c4":
+        return get_c4_dataset(max_sample)
     elif dataset_name == "alpaca":
         return get_alpaca_dataset(max_sample, tokenizer)
     elif dataset_name == "alpaca-solar":
@@ -211,5 +213,18 @@ def get_math_dataset(max_sample, tokenizer):
     sources = [prompt_no_input.format_map(example) for example in math_dataset]
 
     targets = [f"{example['response']}{tokenizer.eos_token}" for example in math_dataset]
+
+    return extract_random_dataset(sources, targets, max_sample)
+
+def get_c4_dataset(max_sample):
+    c4_dataset = load_dataset("allenai/c4", data_files={"train": "en/c4-train.00000-of-01024.json.gz"}, split="train")
+
+    c4_long = []
+    for text in c4_dataset['text']:
+        if len(text) > 512:
+            c4_long.append(text)
+    c4_front = [long[:128] for long in c4_long]
+
+    targets = sources = c4_front
 
     return extract_random_dataset(sources, targets, max_sample)

@@ -1,12 +1,21 @@
-export MODEL_PATH='/root/WizardCoder-Python-7B/'
+
+export HF_HOME=${HOME}/Downloads/Huggingface
+export MODEL_PATH=${HF_HOME}/Models/Llama-2-7b-chat-hf
+export MODEL_NAME=Llama-2-7b-chat-hf
 export SAVE_PATH=$2
 export MASTER_ADDR="localhost"
 export MASTER_PORT="1321"
 export GLOO_SOCKET_IFNAME="lo"
 export NCCL_SOCKET_IFNAME="lo"
-export WANDB_DISABLED=true  
+export WANDB_DISABLED=true
 
-deepspeed --num_gpus=8 train.py \
+export PREDICT_DATASET_NAME=c4
+export PREDICT_CKPT_HOME=${HOME}/Projects/llm-wanda/checkpoints/predictors/${MODEL_NAME}-${PREDICT_DATASET_NAME}
+export ENABLE_PREDICTOR=1
+export ENABLE_PREDICTOR_FINETUNE=0
+
+# --clip BitDistiller/quantization/clip_cache/WizardCoder-7B/7b-int2-g128-twoclip.pt
+deepspeed --num_gpus=1 train.py \
     --model_name_or_path $MODEL_PATH \
     --data_path $1 \
     --model_max_length 1024 \
@@ -21,20 +30,19 @@ deepspeed --num_gpus=8 train.py \
     --gradient_checkpointing True \
     --evaluation_strategy "steps" \
     --eval_steps 4 \
-    --load_best_model_at_end True \
+    --load_best_model_at_end False \
     --save_strategy "steps" \
     --save_steps 4 \
-    --save_total_limit 15 \
+    --save_total_limit 1 \
     --learning_rate 8e-6 \
     --lr_scheduler_type "constant" \
     --weight_decay 0. \
     --logging_steps 1 \
-    --report_to "tensorboard" \
+    --report_to "none" \
     --deepspeed config/zero.json \
-    --bits 2 \
-    --quant_type int2-asym \
-    --q_group_size 128 \
+    --bits 4 \
+    --quant_type Q4_0 \
+    --q_group_size 64 \
     --train_kd True \
     --kd_loss_type "cakld" \
-    --max_train_samples 999999 \
-    --clip BitDistiller/quantization/clip_cache/WizardCoder-7B/7b-int2-g128-twoclip.pt
+    --max_train_samples 999999

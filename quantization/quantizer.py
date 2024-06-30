@@ -241,3 +241,26 @@ class SteN2F3Quantizer(nn.Module):
         
         return (y_pos - y_grad_pos).detach() + y_grad_pos, (y_neg - y_grad_neg).detach() + y_grad_neg
 
+class Q40Quantizer(nn.Module):
+    def __init__(self, q_group_size=64):
+        super().__init__()
+        self.q_group_size = q_group_size
+        self.bit = 4
+
+    def forward(self, x):
+        org_w_shape = x.shape
+
+        if self.q_group_size > 0:
+            assert org_w_shape[-1] % self.q_group_size == 0
+            x = x.reshape(-1, self.q_group_size)
+        assert x.dim() == 2
+
+        ads_max_val = x.abs().amax(dim=1, keepdim=True)
+        ads_max_val = 1.0 / (ads_max_val / -8)
+
+        dtype = x.dtype
+        x = torch.minimum(torch.ones_like(x) * 15.0, x * ads_max_val + 8.5).to(torch.int32).to(dtype)
+
+        x = x.reshape(org_w_shape)
+
+        return x
