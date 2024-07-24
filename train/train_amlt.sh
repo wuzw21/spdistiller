@@ -1,12 +1,8 @@
 
-export CUDA_HOME=/usr/local/cuda-12.1
-export PATH=${CUDA_HOME}/targets/x86_64-linux/lib/stubs:${PATH}
-#export LD_LIBRARY_PATH=${HOME}/Software/miniconda3/envs/py310/lib/python3.10/site-packages/nvidia/curand/lib:${LD_LIBRARY_PATH}
-export MAX_JOBS=16
-
-export HF_HOME=/data/fuchengjia/Downloads/huggingface
-export MODEL_PATH=${HF_HOME}/models/Meta-Llama-3-8B
-export MODEL_NAME=Meta-Llama-3-8B
+#export MODEL_PATH=NousResearch/Meta-Llama-3-8B
+#export MODEL_NAME=Meta-Llama-3-8B
+#export MODEL_PATH=NousResearch/Llama-2-13b-chat-hf
+#export MODEL_NAME=Llama-2-13b-chat-hf
 
 export DATA_PATH=$1
 export SAVE_PATH=$2
@@ -18,16 +14,20 @@ export GLOO_SOCKET_IFNAME="lo"
 export NCCL_SOCKET_IFNAME="lo"
 export WANDB_DISABLED=true
 
+export MODEL_PATH=$5
+export MODEL_NAME=$6
+
 export PREDICT_DATASET_NAME=c4
-export PREDICT_CKPT_HOME=${HF_HOME}/predictor-data/${MODEL_NAME}-${PREDICT_DATASET_NAME}
+export PREDICT_CKPT_HOME=${AMLT_DATA_DIR}/predictors/${MODEL_NAME}-${PREDICT_DATASET_NAME}
 export ENABLE_PREDICTOR=1
 export ENABLE_PREDICTOR_FINETUNE=0
 
-export NUM_GPUS=4
+export NUM_GPUS=8
 
 # --clip BitDistiller/quantization/clip_cache/WizardCoder-7B/7b-int2-g128-twoclip.pt
 # --evaluation_strategy "steps"
 # --eval_steps 4
+# --bits 4 --quant_type Q4_0 --q_group_size 64
 deepspeed --num_gpus=${NUM_GPUS} train.py \
     --model_name_or_path ${MODEL_PATH} \
     --data_path ${DATA_PATH} \
@@ -39,11 +39,10 @@ deepspeed --num_gpus=${NUM_GPUS} train.py \
     --seed 42 \
     --per_device_train_batch_size 4 \
     --per_device_eval_batch_size 4 \
-    --gradient_accumulation_steps 1 \
+    --gradient_accumulation_steps 8 \
     --gradient_checkpointing True \
     --load_best_model_at_end False \
-    --save_strategy "steps" \
-    --save_steps 100 \
+    --save_strategy "epoch" \
     --save_total_limit 1 \
     --learning_rate 8e-6 \
     --lr_scheduler_type "constant" \

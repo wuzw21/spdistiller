@@ -352,7 +352,7 @@ def train():
         print("Teacher Model loaded")
 
     mean_prob=0
-    if training_args.kd_loss_type == "cakld":
+    if training_args.train_kd and training_args.kd_loss_type == "cakld":
         print("Get the main Prob!")
         probDataloader = DataLoader(
             data_module['train_dataset'], 

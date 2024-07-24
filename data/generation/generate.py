@@ -161,6 +161,7 @@ def main(rank, args):
             base_model,
             torch_dtype=torch.bfloat16
         )
+    model.config._attn_implementation = "eager"
     
     tokenizer = AutoTokenizer.from_pretrained(base_model, use_fast=False)
     tokenizer.truncation_side = 'left'
@@ -170,6 +171,7 @@ def main(rank, args):
             tokenizer=tokenizer,
             model=model,
         )
+    tokenizer.model_max_length = 1024
 
     torch.cuda.set_device(rank)
     model.to(torch.cuda.current_device())

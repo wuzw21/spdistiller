@@ -21,6 +21,18 @@ class Round(Function):
         grad_input = grad_output.clone()
         return grad_input
 
+class Floor(Function):
+    @staticmethod
+    def forward(self, input):
+        sign = torch.sign(input)
+        output = sign * torch.floor(input)
+        return output
+
+    @staticmethod
+    def backward(self, grad_output):
+        grad_input = grad_output.clone()
+        return grad_input
+
 # core quantization method (simulated quantization)
 def pseudo_quantize_tensor(w, n_bit=8,
                            zero_point=True, q_group_size=-1,
@@ -121,6 +133,40 @@ class SteInt3AsymQuantizer(nn.Module):
         super().__init__()
         self.q_group_size = q_group_size
         self.bit = 3
+    def forward(self, x):
+        org_w_shape = x.shape
+
+        if self.q_group_size > 0:
+            assert org_w_shape[-1] % self.q_group_size == 0
+            x = x.reshape(-1, self.q_group_size)
+        elif self.q_group_size == -1:
+            assert org_w_shape[-1] % self.q_group_size == 0
+            x = x.reshape(-1, x.shape[-1])
+        assert x.dim() == 2
+
+        max_val = x.amax(dim=1, keepdim=True)
+        min_val = x.amin(dim=1, keepdim=True)
+        max_int = 2 ** self.bit - 1
+        min_int = 0
+        scales = (max_val - min_val).clamp(min=1e-5) / max_int
+        zeros = (-torch.round(min_val / scales)).clamp_(min_int, max_int)
+
+        assert torch.isnan(scales).sum() == 0
+        assert torch.isnan(x).sum() == 0
+
+        x = (torch.clamp(Round.apply(x / scales) +
+                         zeros, min_int, max_int) - zeros) * scales
+        assert torch.isnan(x).sum() == 0
+
+        x = x.reshape(org_w_shape)
+
+        return x
+
+class SteInt4AsymQuantizer(nn.Module):
+    def __init__(self, q_group_size=128):
+        super().__init__()
+        self.q_group_size = q_group_size
+        self.bit = 4
     def forward(self, x):
         org_w_shape = x.shape
 
@@ -255,11 +301,18 @@ class Q40Quantizer(nn.Module):
             x = x.reshape(-1, self.q_group_size)
         assert x.dim() == 2
 
-        ads_max_val = x.abs().amax(dim=1, keepdim=True)
-        ads_max_val = 1.0 / (ads_max_val / -8)
+        # Quant.
+        x = x.to(dtype=torch.float32, device=x.device)
 
-        dtype = x.dtype
-        x = torch.minimum(torch.ones_like(x) * 15.0, x * ads_max_val + 8.5).to(torch.int32).to(dtype)
+        abs_max_val = (x.abs().amax(dim=1, keepdim=True)) / -8
+        #print("abs_max_val:", abs_max_val)
+        x = Floor.apply(torch.minimum(torch.ones_like(x, device=x.device) * 15.0, x * (1.0 / abs_max_val) + 8.5))
+        #print("x:", x)
+
+        # Dequant.
+        x = (x - 8) * abs_max_val
+
+        x = x.to(dtype=torch.bfloat16, device=x.device)
 
         x = x.reshape(org_w_shape)
 

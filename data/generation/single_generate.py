@@ -156,8 +156,9 @@ def main(args):
     model = AutoModelForCausalLM.from_pretrained(
             base_model,
             torch_dtype=torch.bfloat16,
-            device_map='auto'
+            device_map='balanced'
         )
+    model.config._attn_implementation = "eager"
     
     tokenizer = AutoTokenizer.from_pretrained(base_model, use_fast=False)
     if tokenizer.pad_token is None:
@@ -166,6 +167,7 @@ def main(args):
             tokenizer=tokenizer,
             model=model,
         )
+    tokenizer.model_max_length = 512
 
     model.eval()
 
