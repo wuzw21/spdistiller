@@ -284,6 +284,10 @@ def train():
         torch_dtype=torch.bfloat16,
         device_map=device_map,
     )
+    global_weight_preditor = model.model.global_weight_preditor
+    if global_weight_preditor is not None:
+        attn_sp, mlp_sp, w_p = 0.5, 0.5, 2.0
+        global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         model_args.model_name_or_path,

@@ -2,6 +2,8 @@
 
 export PATH=/home/aiscuser/.local/bin:${PATH}
 
+pip uninstall -y onnxruntime_training
+
 pip install -r requirement.txt
 
 mkdir -p 3rdparty

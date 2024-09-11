@@ -21,14 +21,21 @@ export PREDICT_DATASET_NAME=c4
 export PREDICT_CKPT_HOME=${AMLT_DATA_DIR}/predictors/${MODEL_NAME}-${PREDICT_DATASET_NAME}
 export ENABLE_PREDICTOR=1
 export ENABLE_PREDICTOR_FINETUNE=0
+export ENABLE_SPARSE_INFER=1
+export PREDICTOR_DATA_DIR=${PREDICT_CKPT_HOME}
+export ENABLE_TENSOR_SAVER=0
 
-export NUM_GPUS=8
+export NUM_GPUS=$7
+
+#rm -rf /job/hostfile
 
 # --clip BitDistiller/quantization/clip_cache/WizardCoder-7B/7b-int2-g128-twoclip.pt
 # --evaluation_strategy "steps"
 # --eval_steps 4
 # --bits 4 --quant_type Q4_0 --q_group_size 64
-deepspeed --num_gpus=${NUM_GPUS} train.py \
+# --num_gpus=${NUM_GPUS}
+deepspeed --hostfile=hostfile --no_ssh --node_rank=0 \
+    --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
     --model_name_or_path ${MODEL_PATH} \
     --data_path ${DATA_PATH} \
     --model_max_length 512 \
