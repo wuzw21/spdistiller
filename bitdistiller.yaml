@@ -2,7 +2,7 @@ description: GCR Bit Distiller
 
 target:
   service: sing
-  name: msrresrchvc
+  name: msroctovc
   workspace_name: gcrllama2ws
 
 environment:
@@ -28,7 +28,7 @@ jobs:
     env:
       NCCL_DEBUG: info
 - name: gcrbitdistiller
-  sku: 80G4-A100
+  sku: 40G8-A100
   command:
   - bash tools/run_kd_qat_amlt.sh
   mpi: False

@@ -11,7 +11,7 @@ export TEMPERATURE=0.2
 
 export NUM_TRAIN_EPOCHS=4
 
-export NUM_GPUS=4
+export NUM_GPUS=8
 
 cd train
 

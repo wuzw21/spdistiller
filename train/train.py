@@ -286,8 +286,10 @@ def train():
     )
     global_weight_preditor = model.model.global_weight_preditor
     if global_weight_preditor is not None:
-        attn_sp, mlp_sp, w_p = 0.5, 0.5, 2.0
+        attn_sp, mlp_sp, w_p = 0.5, 0.5, 0.0
+        do_cr = False
         global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
+        global_weight_preditor.set_do_pre_prediction(do_cr)
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         model_args.model_name_or_path,
