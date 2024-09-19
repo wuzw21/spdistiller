@@ -3,7 +3,7 @@ description: GCR Bit Distiller
 target:
   service: sing
   name: msroctovc
-  workspace_name: gcrllama2ws
+  workspace_name: srgxws@srgx
 
 environment:
   image: amlt-sing/acpt-2.2.2-py3.10-cuda12.1
@@ -19,7 +19,7 @@ data:
 
 jobs:
 - name: gcrbitdistillergenerateteacherdata
-  sku: 80G1-A100
+  sku: 80G2-H100
   command:
   - bash tools/generate_teacher_data_amlt.sh
   mpi: False
@@ -27,6 +27,10 @@ jobs:
   submit_args:
     env:
       NCCL_DEBUG: info
+  identity: managed
+  submit_args:
+    env:
+      _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
 - name: gcrbitdistiller
   sku: 40G8-A100
   command:
@@ -36,3 +40,7 @@ jobs:
   submit_args:
     env:
       NCCL_DEBUG: info
+  identity: managed
+  submit_args:
+    env:
+      _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai

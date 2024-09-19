@@ -5,8 +5,8 @@ export OUTPUT=$3
 export BATCH_SIZE=$4
 export MAX_SAMPLE=$5
 
-export NUM_GPUS=1
-export CUDA_VISIBLE_DEVICES=0
+export NUM_GPUS=2
+export CUDA_VISIBLE_DEVICES=0,1
 
 # torchrun --nproc_per_node ${NUM_GPUS} --master_port 7830 generate.py \
 #                         --base_model ${MODEL_DIR} \

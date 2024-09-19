@@ -1,10 +1,12 @@
 
-#export MODEL_PATH=NousResearch/Meta-Llama-3-8B
+#export MODEL_PATH=${AMLT_DATA_DIR}/models/Llama-2-7b-chat-hf
+#export MODEL_NAME=Llama-2-7b-chat-hf
+export MODEL_PATH=${AMLT_DATA_DIR}/models/Llama-2-13b-chat-hf
+export MODEL_NAME=Llama-2-13b-chat-hf
+#export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3-8B
 #export MODEL_NAME=Meta-Llama-3-8B
-export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3-8B
-export MODEL_NAME=Meta-Llama-3-8B
-#export MODEL_PATH=NousResearch/Llama-2-13b-chat-hf
-#export MODEL_NAME=Llama-2-13b-chat-hf
+#export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3-8B
+#export MODEL_NAME=Meta-Llama-3-8B
 
 #export TEMPERATURE=0.7
 export TEMPERATURE=0.2
