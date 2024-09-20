@@ -3,7 +3,7 @@ datasets
 deepspeed==0.14.5
 sentencepiece
 tensorboardX
-accelerate
+accelerate==0.31.0
 
 einops
 importlib-resources

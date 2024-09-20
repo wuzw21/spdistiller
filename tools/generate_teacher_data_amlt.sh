@@ -4,8 +4,8 @@ export OMP_NUM_THREADS=16
 
 #export MODEL_NAME=Llama-2-7b-hf
 #export MODEL_PATH=${AMLT_DATA_DIR}/models/Llama-2-7b-hf
-export MODEL_NAME=Llama-2-7b-chat-hf
-export MODEL_PATH=${AMLT_DATA_DIR}/models/Llama-2-7b-chat-hf
+#export MODEL_NAME=Llama-2-7b-chat-hf
+#export MODEL_PATH=${AMLT_DATA_DIR}/models/Llama-2-7b-chat-hf
 #export MODEL_NAME=Llama-2-13b-chat-hf
 #export MODEL_PATH=${AMLT_DATA_DIR}/models/Llama-2-13b-chat-hf
 #export MODEL_NAME=Llama-2-70b-chat-hf
@@ -18,8 +18,8 @@ export MODEL_PATH=${AMLT_DATA_DIR}/models/Llama-2-7b-chat-hf
 #export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3-70B-Instruct
 #export MODEL_NAME=Meta-Llama-3.1-8B-Instruct
 #export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3.1-8B-Instruct
-#export MODEL_NAME=Meta-Llama-3.1-70B-Instruct
-#export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3.1-70B-Instruct
+export MODEL_NAME=Meta-Llama-3.1-70B-Instruct
+export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3.1-70B-Instruct
 
 export ENABLE_PREDICTOR=0
 export ENABLE_SPARSE_INFER=0

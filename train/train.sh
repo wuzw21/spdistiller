@@ -4,10 +4,6 @@ export PATH=${CUDA_HOME}/targets/x86_64-linux/lib/stubs:${PATH}
 #export LD_LIBRARY_PATH=${HOME}/Software/miniconda3/envs/py310/lib/python3.10/site-packages/nvidia/curand/lib:${LD_LIBRARY_PATH}
 export MAX_JOBS=16
 
-export HF_HOME=/data/fuchengjia/Downloads/huggingface
-export MODEL_PATH=${HF_HOME}/models/Meta-Llama-3-8B
-export MODEL_NAME=Meta-Llama-3-8B
-
 export DATA_PATH=$1
 export SAVE_PATH=$2
 export LOGGING_DIR=$3
@@ -18,17 +14,24 @@ export GLOO_SOCKET_IFNAME="lo"
 export NCCL_SOCKET_IFNAME="lo"
 export WANDB_DISABLED=true
 
+export MODEL_PATH=$5
+export MODEL_NAME=$6
+
 export PREDICT_DATASET_NAME=c4
 export PREDICT_CKPT_HOME=${HF_HOME}/predictor-data/${MODEL_NAME}-${PREDICT_DATASET_NAME}
 export ENABLE_PREDICTOR=1
 export ENABLE_PREDICTOR_FINETUNE=0
+export ENABLE_SPARSE_INFER=1
+export PREDICTOR_DATA_DIR=${PREDICT_CKPT_HOME}
+export ENABLE_TENSOR_SAVER=0
 
-export NUM_GPUS=4
+export NUM_GPUS=$7
 
 # --clip BitDistiller/quantization/clip_cache/WizardCoder-7B/7b-int2-g128-twoclip.pt
 # --evaluation_strategy "steps"
 # --eval_steps 4
-deepspeed --num_gpus=${NUM_GPUS} train.py \
+deepspeed --hostfile=hostfile --no_ssh --node_rank=0 \
+    --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
     --model_name_or_path ${MODEL_PATH} \
     --data_path ${DATA_PATH} \
     --model_max_length 512 \

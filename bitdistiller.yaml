@@ -19,7 +19,7 @@ data:
 
 jobs:
 - name: gcrbitdistillergenerateteacherdata
-  sku: 80G2-H100
+  sku: 80G2-A100
   command:
   - bash tools/generate_teacher_data_amlt.sh
   mpi: False
