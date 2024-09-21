@@ -259,6 +259,27 @@ def make_supervised_data_module(tokenizer: transformers.PreTrainedTokenizer, dat
     return dict(train_dataset=train_dataset, eval_dataset=eval_dataset, data_collator=data_collator)
 
 
+def get_int_from_envs(name):
+    var = os.environ.get(name)
+    if var is None:
+        return 0
+    else:
+        return int(var)
+
+def get_float_from_envs(name):
+    var = os.environ.get(name)
+    if var is None:
+        return 0
+    else:
+        return float(var)
+
+def get_sparsity_configs():
+    attn_sp = get_float_from_envs("ATTN_SP")
+    mlp_sp = get_float_from_envs("MLP_SP")
+    w_p = get_float_from_envs("W_P")
+    do_cr = get_int_from_envs("DO_CR")
+    return attn_sp, mlp_sp, w_p, do_cr
+
 def train():
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
@@ -286,8 +307,7 @@ def train():
     )
     global_weight_preditor = model.model.global_weight_preditor
     if global_weight_preditor is not None:
-        attn_sp, mlp_sp, w_p = 0.5, 0.5, 0.0
-        do_cr = True
+        attn_sp, mlp_sp, w_p, do_cr = get_sparsity_configs()
         global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
         global_weight_preditor.set_do_pre_prediction(do_cr)
 

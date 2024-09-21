@@ -30,7 +30,7 @@ export NUM_GPUS=$7
 # --clip BitDistiller/quantization/clip_cache/WizardCoder-7B/7b-int2-g128-twoclip.pt
 # --evaluation_strategy "steps"
 # --eval_steps 4
-deepspeed --hostfile=hostfile --no_ssh --node_rank=0 \
+deepspeed --hostfile=hostfile_local --no_ssh --node_rank=0 \
     --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
     --model_name_or_path ${MODEL_PATH} \
     --data_path ${DATA_PATH} \

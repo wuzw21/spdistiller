@@ -34,7 +34,7 @@ export NUM_GPUS=$7
 # --eval_steps 4
 # --bits 4 --quant_type Q4_0 --q_group_size 64
 # --num_gpus=${NUM_GPUS}
-deepspeed --hostfile=hostfile --no_ssh --node_rank=0 \
+deepspeed --hostfile=hostfile_remote --no_ssh --node_rank=0 \
     --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
     --model_name_or_path ${MODEL_PATH} \
     --data_path ${DATA_PATH} \

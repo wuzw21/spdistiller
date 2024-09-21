@@ -1,12 +1,12 @@
 
-export MODEL_PATH=${AMLT_DATA_DIR}/models/Llama-2-7b-chat-hf
-export MODEL_NAME=Llama-2-7b-chat-hf
+#export MODEL_PATH=${AMLT_DATA_DIR}/models/Llama-2-7b-chat-hf
+#export MODEL_NAME=Llama-2-7b-chat-hf
 #export MODEL_PATH=${AMLT_DATA_DIR}/models/Llama-2-13b-chat-hf
 #export MODEL_NAME=Llama-2-13b-chat-hf
-#export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3-8B
-#export MODEL_NAME=Meta-Llama-3-8B
-#export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3-8B
-#export MODEL_NAME=Meta-Llama-3-8B
+#export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3-8B-Instruct
+#export MODEL_NAME=Meta-Llama-3-8B-Instruct
+export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3.1-8B-Instruct
+export MODEL_NAME=Meta-Llama-3.1-8B-Instruct
 
 #export TEMPERATURE=0.7
 export TEMPERATURE=0.2
@@ -14,6 +14,11 @@ export TEMPERATURE=0.2
 export NUM_TRAIN_EPOCHS=4
 
 export NUM_GPUS=8
+
+export ATTN_SP=0.5
+export MLP_SP=0.5
+export W_P=0.0
+export DO_CR=1
 
 cd train
 

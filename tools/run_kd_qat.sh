@@ -10,6 +10,11 @@ export NUM_TRAIN_EPOCHS=4
 
 export NUM_GPUS=4
 
+export ATTN_SP=0.5
+export MLP_SP=0.5
+export W_P=0.0
+export DO_CR=1
+
 cd train
 
 bash train.sh \
