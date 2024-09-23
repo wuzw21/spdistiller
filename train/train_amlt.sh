@@ -56,7 +56,7 @@ deepspeed --hostfile=hostfile_remote --no_ssh --node_rank=0 \
     --weight_decay 0. \
     --logging_steps 1 \
     --report_to "none" \
-    --deepspeed config/zero.json \
+    --deepspeed config/zero3.json \
     --bits 4 \
     --quant_type Q4_0 \
     --q_group_size 64 \
