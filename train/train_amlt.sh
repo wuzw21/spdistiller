@@ -25,16 +25,19 @@ export ENABLE_SPARSE_INFER=1
 export PREDICTOR_DATA_DIR=${PREDICT_CKPT_HOME}
 export ENABLE_TENSOR_SAVER=0
 
-export NUM_GPUS=$7
+export NUM_NODES=$7
+export NUM_GPUS=$8
 
 #rm -rf /job/hostfile
+
+# No ssh
+#--hostfile=hostfile_remote --no_ssh --node_rank=0
 
 # --clip BitDistiller/quantization/clip_cache/WizardCoder-7B/7b-int2-g128-twoclip.pt
 # --evaluation_strategy "steps"
 # --eval_steps 4
 # --bits 4 --quant_type Q4_0 --q_group_size 64
-# --num_gpus=${NUM_GPUS}
-deepspeed --hostfile=hostfile_remote --no_ssh --node_rank=0 \
+deepspeed --num_nodes=${NUM_NODES} --num_gpus=${NUM_GPUS} \
     --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
     --model_name_or_path ${MODEL_PATH} \
     --data_path ${DATA_PATH} \
@@ -56,7 +59,7 @@ deepspeed --hostfile=hostfile_remote --no_ssh --node_rank=0 \
     --weight_decay 0. \
     --logging_steps 1 \
     --report_to "none" \
-    --deepspeed config/zero3.json \
+    --deepspeed config/zero.json \
     --bits 4 \
     --quant_type Q4_0 \
     --q_group_size 64 \

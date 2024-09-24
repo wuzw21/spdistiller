@@ -13,12 +13,13 @@ export TEMPERATURE=0.2
 
 export NUM_TRAIN_EPOCHS=4
 
-export NUM_GPUS=8
+export NUM_NODES=1
+export NUM_GPUS=4
 
 export ATTN_SP=0.5
 export MLP_SP=0.5
 export W_P=0.0
-export DO_CR=1
+export DO_CR=0
 
 cd train
 
@@ -30,6 +31,7 @@ bash train_amlt.sh \
     ${NUM_TRAIN_EPOCHS} \
     ${MODEL_PATH} \
     ${MODEL_NAME} \
+    ${NUM_NODES} \
     ${NUM_GPUS}
 
 cd ..

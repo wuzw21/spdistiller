@@ -2,6 +2,12 @@
 
 export PATH=/home/aiscuser/.local/bin:${PATH}
 
+prepareSSHKey() {
+    cp ssh/* ~/.ssh
+}
+
+prepareSSHKey
+
 pip uninstall -y onnxruntime_training
 
 pip install -r requirement.txt
@@ -25,6 +31,13 @@ installTransformers() {
     cd ..
 }
 
+installLMEval() {
+    git clone git@github.com:FuchengJia1996/lm-evaluation-harness-v0.4.3.git "lm-evaluation-harness"
+    cd lm-evaluation-harness
+    pip install -e .
+    cd ..
+}
+
 prepare() {
     wandb offline
 }
@@ -32,5 +45,7 @@ prepare() {
 installTransformers
 
 installBitsandbytes
+
+installLMEval
 
 prepare

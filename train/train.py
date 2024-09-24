@@ -303,7 +303,7 @@ def train():
     model = transformers.AutoModelForCausalLM.from_pretrained(
         model_args.model_name_or_path,
         torch_dtype=torch.bfloat16,
-        #device_map=device_map,
+        device_map=device_map,
     )
     global_weight_preditor = model.model.global_weight_preditor
     if global_weight_preditor is not None:
