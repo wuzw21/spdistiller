@@ -100,6 +100,10 @@ class TrainingArguments(transformers.TrainingArguments):
         default=10,
         metadata={"help": "How many step to caculate the coefficient of CAKLD."}
     )
+    max_memory: str = field(
+        default="80000MB",
+        metadata={"help" : "max_memory for cuda device"}
+    )
 
 def safe_save_model_for_hf_trainer(trainer: transformers.Trainer, output_dir: str):
     """Collects the state dict and dump to disk."""
@@ -286,7 +290,7 @@ def train():
 
     random.seed(TrainingArguments.seed)
     n_gpus = torch.cuda.device_count()
-    max_memory = f'80000MB'
+    max_memory = training_args.max_memory
     max_memory = {i: max_memory for i in range(n_gpus)}
     device_map = "auto"
 

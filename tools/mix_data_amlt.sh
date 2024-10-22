@@ -16,13 +16,12 @@ export OMP_NUM_THREADS=16
 #export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3-8B-Instruct
 #export MODEL_NAME=Meta-Llama-3-70B-Instruct
 #export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3-70B-Instruct
-# export MODEL_NAME=Meta-Llama-3.1-8B-Instruct
-# export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3.1-8B-Instruct
+export MODEL_NAME=Meta-Llama-3.1-8B-Instruct
+export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3.1-8B-Instruct
 # export MODEL_NAME=Meta-Llama-3.1-70B-Instruct
 # export MODEL_PATH=${AMLT_DATA_DIR}/models/Meta-Llama-3.1-70B-Instruct
-export MODEL_NAME=Phi-3.5-mini-instruct
-export MODEL_PATH=${AMLT_DATA_DIR}/models/Phi-3.5-mini-instruct
-SKU="80G1-A100"
+
+SKU=${SKU:-"40G4-A100"}
 echo "SKU: $SKU"
 export NUM_GPUS=$(echo "$SKU" | sed -E 's/.*G([0-9]+)-.*/\1/')
 echo "NUM_GPUS: $NUM_GPUS"
@@ -34,15 +33,6 @@ export ENABLE_PREDICTOR=0
 export ENABLE_SPARSE_INFER=0
 export ENABLE_TENSOR_SAVER=0
 cd data/generation
-
-# wikitext, 5000
-bash generate.sh ${MODEL_PATH} wikitext ${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME} 16 5000 ${NUM_GPUS}
-
-# alpaca, 5000
-bash generate.sh ${MODEL_PATH} alpaca ${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME}/ 16 5000 ${NUM_GPUS}
-
-# c4, 5000
-bash generate.sh ${MODEL_PATH} c4 ${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME}/ 16 5000 ${NUM_GPUS}
 
 JSON_PATH1="${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME}/wikitext_T0.2_N1024_S42_5000.json"
 JSON_PATH2="${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME}/alpaca_T0.2_N1024_S42_5000.json"

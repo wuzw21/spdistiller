@@ -27,7 +27,7 @@ export ENABLE_TENSOR_SAVER=0
 
 export NUM_NODES=$7
 export NUM_GPUS=$8
-
+export MAX_MEMORY=$9
 #rm -rf /job/hostfile
 
 # No ssh
@@ -38,6 +38,7 @@ export NUM_GPUS=$8
 # --eval_steps 4
 # --bits 4 --quant_type Q4_0 --q_group_size 64
 deepspeed --num_nodes=${NUM_NODES} --num_gpus=${NUM_GPUS} \
+    --hostfile=hostfile_local --no_ssh --node_rank=0 \
     --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
     --model_name_or_path ${MODEL_PATH} \
     --data_path ${DATA_PATH} \
@@ -65,4 +66,5 @@ deepspeed --num_nodes=${NUM_NODES} --num_gpus=${NUM_GPUS} \
     --q_group_size 64 \
     --train_kd False \
     --kd_loss_type "cakld" \
-    --max_train_samples 999999
+    --max_train_samples 999999 \
+    --max_memory ${MAX_MEMORY}

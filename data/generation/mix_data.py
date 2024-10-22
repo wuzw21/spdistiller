@@ -1,39 +1,46 @@
-
 import os
 import json
 import random
+import argparse
 
-all_outputs = []
+def mix_json_files(output_path, json_paths):
+    """
+    读取若干 JSON 文件，将其内容混合后写入到一个新的 JSON 文件中。
 
-datasets_dir = os.environ["DATASET_DIR"]
-model_name = os.environ["MODEL_NAME"]
+    :param output_path: 混合后的输出文件路径
+    :param json_paths: 待混合的 JSON 文件路径列表
+    """
+    all_outputs = []
 
-json_path1 = None
-#json_path1 = f"{datasets_dir}/{model_name}/wikitext_T0.7_N1024_S42_3000.json"
-json_path2 = f"{datasets_dir}/{model_name}/alpaca_T0.2_N1024_S42_5000.json"
-json_path3 = f"{datasets_dir}/{model_name}/c4_T0.2_N1024_S42_4096.json"
+    # 读取每个 JSON 文件
+    for json_path in json_paths:
+        if os.path.exists(json_path):
+            with open(json_path, 'r') as f:
+                dataset_for_eval = f.readlines()
+            for line in dataset_for_eval:
+                json_data = json.loads(line)
+                all_outputs.append(json_data)
+        else:
+            print(f"Warning: {json_path} does not exist. Skipping...")
 
-if json_path1 is not None:
-    with open(json_path1, 'r') as f:
-        dataset_for_eval = f.readlines()
-    for line in dataset_for_eval:
-        json_data = json.loads(line)
-        all_outputs.append(json_data)
+    # 混合所有读取的数据
+    random.shuffle(all_outputs)
 
-with open(json_path2, 'r') as f:
-    dataset_for_eval = f.readlines()
-for line in dataset_for_eval:
-    json_data = json.loads(line)
-    all_outputs.append(json_data)
+    # 将混合后的数据写入到输出文件中
+    with open(output_path, 'w') as f:
+        for item in all_outputs:
+            f.write(json.dumps(item) + '\n')
 
-with open(json_path3, 'r') as f:
-    dataset_for_eval = f.readlines()
-for line in dataset_for_eval:
-    json_data = json.loads(line)
-    all_outputs.append(json_data)
+def main():
+    # 使用 argparse 接受命令行参数
+    parser = argparse.ArgumentParser(description='Mix JSON files into one output file.')
+    parser.add_argument('--output', type=str, required=True, help='Path to output mixed JSON file.')
+    parser.add_argument('--inputs', type=str, nargs='+', required=True, help='List of input JSON file paths.')
+    
+    args = parser.parse_args()
 
-random.shuffle(all_outputs)
+    # 调用函数混合文件
+    mix_json_files(args.output, args.inputs)
 
-with open(f'{datasets_dir}/{model_name}/mix_alpaca_c4_9000.json', 'w') as f:
-    for item in all_outputs:
-        f.write(json.dumps(item) + '\n')
+if __name__ == '__main__':
+    main()

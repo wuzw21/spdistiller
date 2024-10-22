@@ -1,28 +1,28 @@
 #!/bin/bash
 
-export MODEL_DIR=${AMLT_DATA_DIR}/models
-export MODEL_NAME=Meta-Llama-3.1-8B-Instruct
-export TEST_TASK=wikitext
+#export HF_HOME=${HOME}/Downloads/huggingface
+export HF_HOME=/home/donglinbai/Projects/wzw
 
-export MODEL=${AMLT_MAP_INPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64
+export MODEL_DIR=${HF_HOME}/models
+#export MODEL_DIR=${AMLT_DATA_DIR}/models
+export MODEL_NAME=$1
 
-# export MODEL=/home/donglinbai/Projects/wzw/models/Llama-2-7b-chat-hf-0.5
+export MODEL=${MODEL_DIR}/${MODEL_NAME}
+
 export ENABLE_PREDICTOR=1
 export ENABLE_SPARSE_INFER=1
 export ENABLE_TENSOR_SAVER=0
-
-# unused parameters
-export HF_HOME=${HOME}/Downloads/huggingface
 export PREDICTOR_DATA_HOME=${HF_HOME}/predictor-data
 export PREDICTOR_DATA_DIR=${PREDICTOR_DATA_HOME}/${MODEL_NAME}-c4-sparse
 export PREDICT_CKPT_HOME=/data/fuchengjia/Projects/llm-wanda/checkpoints/weight-predictors
-export PROSPARSE_PREDICTOR=0
-export PROSPARSE_PREDICTOR_DIR=${HF_HOME}/models/${MODEL_NAME}-predictor
-export HF_DOWNLOAD_DATASET_HOME=${HF_HOME}/datasets
-export HF_ENDPOINT=https://huggingface.co
-
 
 export LOCAL_RANK=-1
+
+export PROSPARSE_PREDICTOR=0
+export PROSPARSE_PREDICTOR_DIR=${HF_HOME}/models/${MODEL_NAME}-predictor
+
+export HF_DOWNLOAD_DATASET_HOME=${HF_HOME}/datasets
+export HF_ENDPOINT=https://huggingface.co
 
 echo "Model: ${MODEL_NAME}"
 
@@ -34,5 +34,6 @@ cd test
 python test_task.py \
     --model=${MODEL} \
     --seed=42 \
-    --task=${TEST_TASK}
+    --task=$2
+
 cd ..

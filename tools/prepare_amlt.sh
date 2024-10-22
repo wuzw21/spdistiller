@@ -44,7 +44,7 @@ prepare() {
 
 installTransformers
 
-installBitsandbytes
+# installBitsandbytes
 
 installLMEval
 

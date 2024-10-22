@@ -4,4 +4,4 @@
 /data/predictors
 /logs
 /quantization/clip_cache
-/test
+/test/general

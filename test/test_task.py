@@ -266,7 +266,7 @@ def main():
     if "70b" in args.model or "70B" in args.model:
         sp_configs = [(0.00, 0.00, 0.00, 0), (0.50, 0.50, 0.00, 0), (0.90, 0.90, 0.00, 0)]
     else:
-        sp_configs = [(0.00, 0.00, 0.00, 0), (0.50, 0.50, 0.00, 0), (0.60, 0.60, 0.00, 0)]
+        sp_configs = [(0.00, 0.00, 0.00, 0), (0.50, 0.50, 0.00, 0), (0.80, 0.80, 0.00, 0), (0.90, 0.90, 0.00, 0)]
         #sp_configs = [(0.50, 0.50, 0.00, 0), (0.60, 0.60, 0.00, 0)]
     for sp_config in sp_configs:
         eval_for_sp_config(args.model, model, tokenizer, task_list, num_shot, limit, sp_config)
