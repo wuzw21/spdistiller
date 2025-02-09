@@ -1,0 +1,57 @@
+description: GCR Bit Distiller
+
+target:
+  service: sing
+  name: msroctobasicvc
+  workspace_name: srgxws@srgx 
+
+environment:
+  image: amlt-sing/acpt-rocm6.1_ubuntu20.04_py3.9_pytorch2.1.2
+  setup:
+    - bash tools/prepare_amlt.sh
+
+code:
+  local_dir: /home/donglinbai/Projects/wzw/BitDistiller-Q4_0/
+
+data:
+  local_dir: /home/donglinbai/Projects/wzw/BitDistiller-Q4_0/data/
+  remote_dir: gcrbitdistillerdata/
+# list of jobs to run, we run 2 jobs in this example
+jobs:
+- name: cube_MI300X
+  #sku: 192G4-MI300X
+  sku: 192G4-MI300X-IB-xGMI
+  identity: managed
+  submit_args:
+    env:
+      _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
+  command:
+  - hostname
+  - rocm-smi
+  - sleep infinity
+- name: gcrbitdistiller
+  sku: 192G8-MI300X-IB-xGMI
+  command:
+  - bash tools/run_kd_qat_amlt.sh $EXTRA_ARGS
+  mpi: False
+  process_count_per_node: 0
+  submit_args:
+    env:
+      NCCL_DEBUG: info
+  identity: managed
+  submit_args:
+    env:
+      _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
+- name: gcrbitdistiller_test_task
+  sku: 192G8-MI300X-IB-xGMI
+  command:
+  - bash tools/run_test_task_amlt.sh $EXTRA_ARGS
+  mpi: False
+  process_count_per_node: 0
+  submit_args:
+    env:
+      NCCL_DEBUG: info
+  identity: managed
+  submit_args:
+    env:
+      _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai

@@ -25,14 +25,14 @@ installBitsandbytes() {
 }
 
 installTransformers() {
-    git clone https://github.com/FuchengJia1996/transformers-pred.git "transformers"
+    git clone -b wzw https://github.com/FuchengJia1996/transformers-pred.git "transformers"
     cd transformers
     pip install -e .
     cd ..
 }
 
 installLMEval() {
-    git clone git@github.com:FuchengJia1996/lm-evaluation-harness-v0.4.3.git "lm-evaluation-harness"
+    git clone https://github.com/FuchengJia1996/lm-evaluation-harness-v0.4.3.git "lm-evaluation-harness"
     cd lm-evaluation-harness
     pip install -e .
     cd ..

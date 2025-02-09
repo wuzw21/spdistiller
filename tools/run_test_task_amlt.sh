@@ -1,12 +1,14 @@
 #!/bin/bash
 
 export MODEL_DIR=${AMLT_DATA_DIR}/models
-export MODEL_NAME=Meta-Llama-3.1-8B-Instruct
-export TEST_TASK=wikitext
+export MODEL_NAME=$1
+# export MODEL_NAME=Phi-3.5-mini-instruct
+export FILE_PATH=../threshold/llama-3-0.7.txt
+export TEST_TASK=wiki
 
-export MODEL=${AMLT_MAP_INPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64
-
-# export MODEL=/home/donglinbai/Projects/wzw/models/Llama-2-7b-chat-hf-0.5
+export MODEL=${AMLT_DATA_DIR}/models/${MODEL_NAME}
+# 
+# export MODEL=/data/wzw/models/Llama-3.1-8B-Instruct
 export ENABLE_PREDICTOR=1
 export ENABLE_SPARSE_INFER=1
 export ENABLE_TENSOR_SAVER=0
@@ -28,11 +30,16 @@ echo "Model: ${MODEL_NAME}"
 
 echo "CUDA device: ${CUDA_VISIBLE_DEVICES}"
 
-cd test
+cd train
 
 #--limit=500
 python test_task.py \
     --model=${MODEL} \
     --seed=42 \
-    --task=${TEST_TASK}
+    --task=${TEST_TASK} \
+    --sparse=0.5 \
+    --limit=100 \
+    --num_shot=0 \
+    --do_cr=0 \
+    --file_path=${FILE_PATH}
 cd ..

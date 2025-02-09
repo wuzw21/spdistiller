@@ -23,7 +23,7 @@ from accelerate import init_empty_weights, infer_auto_device_map, dispatch_model
 from mytrainer import KDTrainer
 import random
 from tqdm import tqdm
-
+from datasets import load_dataset
 
 
 def _make_r_io_base(f, mode: str):
@@ -54,6 +54,7 @@ class ModelArguments:
 @dataclass
 class DataArguments:
     data_path: str = field(default=None, metadata={"help": "Path to the training data."})
+    threshold_path: str = field(default=None, metadata={"help": "Path to save threshold"})
     max_train_samples: Optional[int] = field(
         default=None,
         metadata={
@@ -103,6 +104,14 @@ class TrainingArguments(transformers.TrainingArguments):
     max_memory: str = field(
         default="80000MB",
         metadata={"help" : "max_memory for cuda device"}
+    )
+    evaluation_strategy: str = field(
+    default="steps",
+    metadata={"help": "Evaluation strategy to adopt during training. Options: 'no', 'steps', 'epoch'."}
+    )  
+    eval_steps: int = field(
+        default=500,
+        metadata={"help": "Number of update steps between two evaluations."}
     )
 
 def safe_save_model_for_hf_trainer(trainer: transformers.Trainer, output_dir: str):
@@ -307,13 +316,14 @@ def train():
     model = transformers.AutoModelForCausalLM.from_pretrained(
         model_args.model_name_or_path,
         torch_dtype=torch.bfloat16,
-        device_map=device_map,
+        device_map=None,
     )
     global_weight_preditor = model.model.global_weight_preditor
     if global_weight_preditor is not None:
         attn_sp, mlp_sp, w_p, do_cr = get_sparsity_configs()
         global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
         global_weight_preditor.set_do_pre_prediction(do_cr)
+        global_weight_preditor.set_sparsity_threshold(data_args.threshold_path)
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         model_args.model_name_or_path,
@@ -408,7 +418,6 @@ def train():
         dist.all_reduce(mean_prob, op=dist.ReduceOp.SUM)
         mean_prob = mean_prob / dist.get_world_size()
         print(f"Get the coefficient: {mean_prob}")
-
 
     if training_args.train_kd:
         trainer = KDTrainer(model=model, tokenizer=tokenizer, teacher_model=teacher_model, loss_type=training_args.kd_loss_type, mean_prob=mean_prob, args=training_args, **data_module)

@@ -4,11 +4,9 @@ export OMP_NUM_THREADS=16
 
 export HF_HOME=/data/wzw
 export DATASET_DIR=data/datasets
-export MODEL_NAME=$1
-export MODEL_PATH=${HF_HOME}/models/${MODEL_NAME}
-
-export ENABLE_PREDICTOR=0
-
+export MODEL_NAME=Meta-Llama-3-8B
+export MODEL_PATH=/data/wzw/models/${MODEL_NAME}
+export SPARSITY_PATH=/home/donglinbai/Projects/wzw/BitDistiller-Q4_0/threshold/llama-3-0.7.txt
 export ENABLE_PREDICTOR=0
 export ENABLE_SPARSE_INFER=0
 export ENABLE_TENSOR_SAVER=0

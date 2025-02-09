@@ -20,5 +20,5 @@ tqdm-multiprocess
 zstandard
 
 bitsandbytes
-peft
+peft==0.13.1
 fraction

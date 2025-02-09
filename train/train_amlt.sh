@@ -1,8 +1,14 @@
+AMLT_MODE=${AMLT_MODE:-0}
 
-#export MODEL_PATH=NousResearch/Meta-Llama-3-8B
-#export MODEL_NAME=Meta-Llama-3-8B
-#export MODEL_PATH=NousResearch/Llama-2-13b-chat-hf
-#export MODEL_NAME=Llama-2-13b-chat-hf
+if [ "$AMLT_MODE" -eq 1 ]; then
+    echo "Running in AMLT mode, skipping CUDA environment setup..."
+else
+    echo "Running in normal mode, setting up CUDA environment..."
+    export CUDA_HOME=/usr/local/cuda-12.3
+    export PATH=${CUDA_HOME}/targets/x86_64-linux/lib/stubs:${PATH}
+    # 如有需要，可启用下行，加载 LD_LIBRARY_PATH
+    # export LD_LIBRARY_PATH=${HOME}/Software/miniconda3/envs/py310/lib/python3.10/site-packages/nvidia/curand/lib:${LD_LIBRARY_PATH}
+fi
 
 export DATA_PATH=$1
 export SAVE_PATH=$2
@@ -17,17 +23,10 @@ export WANDB_DISABLED=true
 export MODEL_PATH=$5
 export MODEL_NAME=$6
 
-export PREDICT_DATASET_NAME=c4
-export PREDICT_CKPT_HOME=${AMLT_DATA_DIR}/predictors/${MODEL_NAME}-${PREDICT_DATASET_NAME}
 export ENABLE_PREDICTOR=1
-export ENABLE_PREDICTOR_FINETUNE=0
 export ENABLE_SPARSE_INFER=1
-export PREDICTOR_DATA_DIR=${PREDICT_CKPT_HOME}
 export ENABLE_TENSOR_SAVER=0
 
-export NUM_NODES=$7
-export NUM_GPUS=$8
-export MAX_MEMORY=$9
 #rm -rf /job/hostfile
 
 # No ssh
@@ -37,11 +36,12 @@ export MAX_MEMORY=$9
 # --evaluation_strategy "steps"
 # --eval_steps 4
 # --bits 4 --quant_type Q4_0 --q_group_size 64
-deepspeed --num_nodes=${NUM_NODES} --num_gpus=${NUM_GPUS} \
+deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
     --hostfile=hostfile_local --no_ssh --node_rank=0 \
     --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
     --model_name_or_path ${MODEL_PATH} \
     --data_path ${DATA_PATH} \
+    --threshold_path ${THRESHOLD_PATH} \
     --model_max_length 512 \
     --output_dir ${SAVE_PATH} \
     --logging_dir ${LOGGING_DIR} \
@@ -67,4 +67,6 @@ deepspeed --num_nodes=${NUM_NODES} --num_gpus=${NUM_GPUS} \
     --train_kd False \
     --kd_loss_type "cakld" \
     --max_train_samples 999999 \
-    --max_memory ${MAX_MEMORY}
+    --max_memory ${MAX_MEMORY} \
+    --evaluation_strategy "steps" \
+    --eval_steps 500
