@@ -15,6 +15,6 @@ for sparse in "${sparse_values[@]}"; do
         
         bash ./tools/run_kd_qat.sh $model_name $sparse $cr
         
-        # amlt map --sla Premium bitdistiller.yaml :gcrbitdistiller_test_task "$task_name" --description "mmlu-and-wiki-$model" --extra-args "$model_name $sparse $cr"
+        # bash ./tools/run_test_task.sh $model_name $sparse $cr
     done
 done

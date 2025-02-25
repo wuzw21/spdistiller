@@ -1,29 +1,40 @@
 #!/bin/bash
 export CUDA_HOME=/usr/local/cuda-12.3
-export HF_HOME=${HOME}/Downloads/huggingface
+
+
 export MODEL_DIR=/data/wzw/models
-export FILE_PATH=../threshold/llama-3-0.7.txt
-export MODEL_NAME=Meta-Llama-3-8B
-export MODEL=/home/donglinbai/Projects/wzw/BitDistiller-Q4_0/data/ckpts/Meta-Llama-3-8B/int4-g64/checkpoint-1818
+export MODEL_NAME=$1
+export MODEL=${MODEL_DIR}/${MODEL_NAME}
+
 export TEST_TASK=wiki
+
 export ENABLE_PREDICTOR=1
 export ENABLE_SPARSE_INFER=1
 export ENABLE_TENSOR_SAVER=0
-export PREDICTOR_DATA_HOME=${HF_HOME}/predictor-data
-export PREDICTOR_DATA_DIR=${PREDICTOR_DATA_HOME}/${MODEL_NAME}-c4-sparse
-export PREDICT_CKPT_HOME=/data/fuchengjia/Projects/llm-wanda/checkpoints/weight-predictors
-export TOKENIZERS_PARALLELISM=false
-export LOCAL_RANK=-1
 
-export PROSPARSE_PREDICTOR=0
-export PROSPARSE_PREDICTOR_DIR=${HF_HOME}/models/${MODEL_NAME}-predictor
-
+export HF_HOME=${HOME}/Downloads/huggingface
 export HF_DOWNLOAD_DATASET_HOME=${HF_HOME}/datasets
 export HF_ENDPOINT=https://huggingface.co
+
+
+export ATTN_SP=$2
+export MLP_SP=$2
+export W_P=0
+export DO_CR=$3
+SPARSE_STRATEGY='Static'
+
+if [ "$SPARSE_STRATEGY" = "Static" ]; then
+    export THRESHOLD_PATH="../threshold/${MODEL_NAME}/${MODEL_NAME}-${ATTN_SP}.txt"
+else
+    export THRESHOLD_PATH="zwwz"
+fi
+
 
 echo "Model: ${MODEL_NAME}"
 
 echo "CUDA device: ${CUDA_VISIBLE_DEVICES}"
+
+echo "Model: ${MODEL}"
 
 cd train
 
@@ -32,9 +43,10 @@ python test_task.py \
     --model=${MODEL} \
     --seed=42 \
     --task=${TEST_TASK} \
-    --sparse=0.5 \
+    --sparse=${ATTN_SP} \
     --limit=100 \
     --num_shot=0 \
-    --do_cr=0 \
-    --file_path=${FILE_PATH}
+    --do_cr=${DO_CR} \
+    --file_path=${THRESHOLD_PATH} \
+    --sparse_strategy=${SPARSE_STRATEGY}
 cd ..

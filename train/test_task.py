@@ -1,4 +1,4 @@
-
+import os
 import argparse
 import numpy as np
 import fnmatch
@@ -21,6 +21,8 @@ def parse_args():
     parser.add_argument('--sparse', type=float, default=0,help='sparse')
     parser.add_argument('--do_cr',type=int, default=0,help='cross_layer')
     parser.add_argument('--file_path',type=str, default=0,help='file_path')
+    parser.add_argument('--sparse_strategy',type=str, help='sparse strategy')
+    parser.add_argument('--test_all',type=bool,default=0)
     args = parser.parse_args()
     return args
 
@@ -205,6 +207,7 @@ def download_dataset(task_name):
         data_dir=None,
         cache_dir=None,
         download_mode=None,
+        trust_remote_code=True
     )
 
 
@@ -256,8 +259,46 @@ def eval(
 
     return make_table(results)
 
+def process_compressed_pred(compressed_pred, output_file, layer_idx, weight_idx):
+    """
+    处理压缩后的预测结果，提取前 20% 的最大元素，并将结果写入文件。
+    
+    参数:
+        compressed_pred: 压缩后的预测张量 (形状为 (batch_size, hidden_size))
+        output_file: 输出文件路径
+        layer_idx: 当前层的索引
+        weight_idx: 当前权重的索引
+    """
+    # 按照大小排序
+    sorted_pred, indices = torch.sort(compressed_pred, descending=True)
+    
+    # 提取前 20% 的最大元素
+    top_k = int(0.2 * compressed_pred.numel())
+    top_elements = sorted_pred[:top_k]
+    
+    # 计算这些元素占全部元素的比例
+    total_sum = compressed_pred.sum().item()
+    top_sum = top_elements.sum().item()
+    top_ratio = top_sum / total_sum if total_sum > 0 else 0
+    
+    # 将结果写入文件
+    with open(output_file, 'a') as f:
+        f.write(f"Layer {layer_idx}, Weight {weight_idx}:\n")
+        f.write(f"Top 20% elements: {top_elements.tolist()}\n")
+        f.write(f"Top 20% ratio: {top_ratio:.4f}\n")
+        f.write(f"Total sum: {total_sum:.4f}\n")
+        f.write(f"Top sum: {top_sum:.4f}\n")
+        f.write("-" * 40 + "\n")
+    
+    # 打印结果
+    print(f"Layer {layer_idx}, Weight {weight_idx}:")
+    # print(f"Top 20% elements: {top_elements.tolist()}")
+    print(f"Top 20% ratio: {top_ratio:.4f}")
+    print(f"Total sum: {total_sum:.4f}")
+    print(f"Top sum: {top_sum:.4f}")
+    print("-" * 40)
 
-def eval_for_sp_config(model_path, model, tokenizer, task_list, num_shot, limit, sp_config, file_path):
+def eval_for_sp_config(model_path, model, tokenizer, task_list, num_shot, limit, sp_config, file_path, strategy):
     print("sp_config: ", sp_config, "num_shot: ", num_shot)
     global_weight_preditor = model.model.global_weight_preditor
     global_weight_preditor.reset()
@@ -267,6 +308,7 @@ def eval_for_sp_config(model_path, model, tokenizer, task_list, num_shot, limit,
         global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
         global_weight_preditor.set_do_pre_prediction(do_cr)
     global_weight_preditor.set_sparsity_threshold(file_path)
+    global_weight_preditor.set_sparsity_strategy(strategy)
     results = eval(
         model_path, model, tokenizer, task_list,
         num_shot, limit
@@ -275,6 +317,42 @@ def eval_for_sp_config(model_path, model, tokenizer, task_list, num_shot, limit,
     print("sp_config: ", sp_config, "num_shot: ", num_shot)
     print("results")
     print(results)
+    if os.environ.get('DEBUG_CROSSLAYER','0') != '0' :
+        with open('test_crosslayer.txt', 'w') as f:
+            pass  # 清空文件内容
+
+        # 初始化一个字典来存储每层每个 iweight 的相似性结果
+        layer_similarity_results = {iweight: [] for iweight in range(7)}
+
+        # 遍历所有层和权重
+        for ilayer in range(32):
+            for iweight in range(7):
+                similarities = global_weight_preditor.similarity_results[ilayer][iweight]
+                if similarities:  # 检查列表是否为空
+                    with open('test_crosslayer.txt', 'a') as f:
+                        f.write(f"Layer {ilayer} Block {iweight} similarity {similarities}\n")
+                    mean = sum(similarities) / len(similarities)
+                    print(f"Layer {ilayer}, Weight {iweight}: Mean Similarity = {mean:.4f}")
+                    layer_similarity_results[iweight].append(mean)  # 将均值存储到对应 iweight 的列表中
+                else:
+                    print(f"Layer {ilayer}, Weight {iweight}: No similarity data available.")
+
+        # 计算每个 iweight 的整体均值
+        for iweight, means in layer_similarity_results.items():
+            if means:  # 检查是否有数据
+                overall_mean = sum(means) / len(means)
+                print(f"Overall Mean Similarity for iweight {iweight}: {overall_mean:.4f}")
+                with open('test_crosslayer.txt', 'a') as f:
+                    f.write(f"Overall Mean Similarity for iweight {iweight}: {overall_mean:.4f} {overall_mean}\n" )
+            else:
+                print(f"No data available for iweight {iweight}.")
+
+        output_file = "top_elements.txt"
+        with open('top_elements.txt', 'w') as f:
+            pass  # 清空文件内容
+        for ilayer in range(32) :
+            for iweight in range(7) :
+                process_compressed_pred(global_weight_preditor.wmetrics[ilayer][iweight], output_file, ilayer, iweight)
     print('='*40)
 
 
@@ -308,16 +386,21 @@ def main():
     if limit is None or limit <= 0:
         limit = None
     task_list = [args.task, 'wikitext']
-    num_shots= list(set([args.num_shot,0]))
-    if "70b" in args.model or "70B" in args.model:
-        sp_configs = [(0.00, 0.00, 0.00, 0), (0.50, 0.50, 0.00, 0), (0.90, 0.90, 0.00, 0)]
-    else:
-        print(args.sparse,args.do_cr)
-        sp_configs = list(set([(args.sparse, args.sparse, 0.00, args.do_cr), (0.50, 0.50, 0.00, 0), (0.70, 0.70, 0.00, 0)]))
+    print(args.sparse,args.do_cr)
+    sp_configs = [(args.sparse, args.sparse, 0.00, args.do_cr)]
+    if args.test_all:
+        sp_configs = [(0.5,0.5,0,0),(0.6,0.6,0,0),(0.7,0.7,0,0),(0.8,0.8,0,0),]
+    num_shots= [5]
     print('sp_configs: ',sp_configs)
     for sp_config in sp_configs:
         for num_shot in num_shots: 
-            eval_for_sp_config(args.model, model, tokenizer, task_list, num_shot, limit, sp_config, args.file_path)
+            if args.test_all and args.sparse_strategy == 'Static':
+                model_name = model.model_name
+                sparse = sp_config[0]
+                filepath = f'../threshold/{model_name}/{model_name}-{sparse}.txt'
+            else :
+                filepath = args.file_path
+            eval_for_sp_config(args.model, model, tokenizer, task_list, num_shot, limit, sp_config, filepath, args.sparse_strategy)
 
 
 if __name__ == "__main__":

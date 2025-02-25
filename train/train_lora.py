@@ -24,6 +24,7 @@ from mytrainer import KDTrainer
 import random
 from tqdm import tqdm
 from datasets import load_dataset
+from peft import LoraConfig, get_peft_model
 
 
 def _make_r_io_base(f, mode: str):
@@ -378,87 +379,22 @@ def train():
         apply_clip(model, clip_results)
         print("Clipping init successfully!")
 
-    if training_args.train_kd:
-        print("loading Teacher Model...")
-        teacher_model = transformers.AutoModelForCausalLM.from_pretrained(
-            model_args.model_name_or_path,
-            load_in_4bit=False,
-            load_in_8bit=False,
-            torch_dtype=torch.bfloat16,
-            device_map=device_map,
-            max_memory=max_memory,
-        )
-        teacher_model.eval()
-        teacher_model.cuda()
-        for param in teacher_model.parameters():
-            param.requires_grad = False
-        teacher_model.config.use_cache = False
-        if pad_status is False:
-            smart_tokenizer_and_embedding_resize(
-                special_tokens_dict=dict(pad_token=DEFAULT_PAD_TOKEN),
-                tokenizer=tokenizer,
-                model=teacher_model,
-            )
-        model.kd_loss_scale = 1.0
-        print("Teacher Model loaded")
+    # 配置 LoRA 参数（针对因果语言模型任务）
+    lora_config = LoraConfig(
+        task_type="CAUSAL_LM",   # 保持自回归任务
+        r=8,                     # LoRA 秩，可根据需要调整
+        lora_alpha=32,           # Scaling 参数
+        lora_dropout=0.1,
+        bias="none"
+    )
+    model = get_peft_model(model, lora_config)
+    print("LoRA modules added to the model.")
+    
 
-    mean_prob=0
-    if training_args.train_kd and training_args.kd_loss_type == "cakld":
-        print("Get the main Prob!")
-        probDataloader = DataLoader(
-            data_module['train_dataset'], 
-            shuffle=True, 
-            collate_fn=data_module['data_collator'], 
-            batch_size=training_args.per_device_train_batch_size,
-            drop_last=True,
-        )
-
-        prob = 0
-        for step, batch in tqdm(enumerate(probDataloader)):
-            if step > training_args.cakld_steps:
-                break
-            batch = {k: v.to(teacher_model.device) for k, v in batch.items()}
-            with torch.no_grad():
-                outputs = teacher_model(**batch)
-            logits = outputs.get("logits").contiguous()
-            prob1 = torch.nn.functional.softmax(logits, dim=-1)
-            prob1 = torch.max(prob1, dim=-1).values 
-            prob += prob1.mean()
-        mean_prob = prob / training_args.cakld_steps
-        mean_prob = torch.Tensor(mean_prob.to(teacher_model.device))
-        dist.all_reduce(mean_prob, op=dist.ReduceOp.SUM)
-        mean_prob = mean_prob / dist.get_world_size()
-        print(f"Get the coefficient: {mean_prob}")
-
-    if training_args.train_kd:
-        trainer = KDTrainer(model=model, tokenizer=tokenizer, teacher_model=teacher_model, loss_type=training_args.kd_loss_type, mean_prob=mean_prob, args=training_args, compute_metrics=compute_metrics, **data_module)
-    else:
-        trainer = Trainer(model=model, tokenizer=tokenizer, args=training_args, compute_metrics=compute_metrics, **data_module)
+    trainer = Trainer(model=model, tokenizer=tokenizer, args=training_args, compute_metrics=compute_metrics, **data_module)
     trainer.train()
     trainer.save_state()
     safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)
-
-    def safe_save_args_for_hf_trainer(output_dir):
-        # 保存参数到 JSON 文件
-        params_path = os.path.join(output_dir, "all_params.json")
-        with open(params_path, "w") as f:
-            json.dump({
-                "model_args": model_args.__dict__,
-                "data_args": data_args.__dict__,
-                "training_args": training_args.__dict__
-            }, f, indent=4)
-
-        env_path = os.path.join(output_dir, "environment_variables.json")
-        with open(env_path, "w") as f:
-            json.dump(dict(os.environ), f, indent=4)
-        
-        # 删除检查点文件夹
-        ckpt_dir = os.path.join(output_dir, "checkpoint-*")
-        for d in glob.glob(ckpt_dir):
-            os.rmdir(d)  # 或者使用 shutil.rmtree(d) 删除非空文件夹
-
-    # 调用保存函数
-    safe_save_args_for_hf_trainer(training_args.output_dir)
 
 if __name__ == "__main__":
     train()

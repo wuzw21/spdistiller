@@ -1,17 +1,20 @@
 #!/bin/bash
 
-export HF_HOME=${HOME}/Downloads/huggingface
 export MODEL_DIR=/data/wzw/models
 export MODEL_NAME=Meta-Llama-3-8B
 export MODEL=${MODEL_DIR}/${MODEL_NAME}
 export TEST_TASK=mmlu
 export CUDA_VISIBLE_DEVICES=0
+
 export ENABLE_PREDICTOR=1
 export ENABLE_SPARSE_INFER=1
 export ENABLE_TENSOR_SAVER=0
-export PREDICTOR_DATA_HOME=${HF_HOME}/predictor-data
-export PREDICTOR_DATA_DIR=${PREDICTOR_DATA_HOME}/${MODEL_NAME}-c4-sparse
-export PREDICT_CKPT_HOME=/data/fuchengjia/Projects/llm-wanda/checkpoints/weight-predictors
+
+export ATTN_SP=0.7
+export MLP_SP=0.7
+export W_P=0.0
+export DO_CR=1
+
 
 export LOCAL_RANK=-1
 

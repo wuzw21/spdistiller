@@ -1,0 +1,15 @@
+https://sanbpx4p3idss6q.blob.core.windows.net/amulet/projects/wzw-gcrbitdistillerq4/
+
+WeightPredictor needed params : 
+
+model_name
+sparsity_strategy : enum {Dynamic, Static, Mixmax, Mixmin}
+
+ENVIRON PARAM :
+
+ENABLE_PREDICTOR : 
+ENABLE_SPARSE_INFER : 
+LOCAL_RANK : 
+THRESHOLD_PATH : 
+ACTIVATE_LAYER : 
+BACKWARD_STRATEGY : 

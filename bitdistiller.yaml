@@ -2,7 +2,7 @@ description: GCR Bit Distiller
 
 target:
   service: sing
-  name: msroctobasicvc
+  name: msroctovc
   workspace_name: srgxws@srgx
 
 environment:
@@ -19,7 +19,7 @@ data:
 
 jobs:
 - name: gcrbitdistillergenerateteacherdata
-  sku: 40G8-A100
+  sku: 40G4-A100
   command:
   - bash tools/generate_teacher_data_amlt.sh
   mpi: False
@@ -33,7 +33,7 @@ jobs:
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
 
 - name: gcrbitdistiller
-  sku: 40G8-A100
+  sku: 40G4-A100
   command:
     - bash tools/run_kd_qat_amlt.sh $EXTRA_ARGS
   mpi: False
@@ -43,4 +43,29 @@ jobs:
     env:
       NCCL_DEBUG: info
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
-      SKU: 40G8-A100
+      SKU: 40G4-A100
+
+- name: gcrbitdistiller_test_task
+  sku: 40G4-A100
+  command:
+  - bash tools/run_test_task_amlt.sh $EXTRA_ARGS
+  mpi: False
+  process_count_per_node: 0
+  identity: managed
+  submit_args:
+    env:
+      SKU: 40G4-A100
+      NCCL_DEBUG: info
+      _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
+- name: gcrbitdistiller_test_all_task
+  sku: 40G4-A100
+  command:
+  - bash tools/test_all_llama3.sh
+  mpi: False
+  process_count_per_node: 0
+  identity: managed
+  submit_args:
+    env:
+      SKU: 40G4-A100
+      NCCL_DEBUG: info
+      _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai

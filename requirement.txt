@@ -22,3 +22,4 @@ zstandard
 bitsandbytes
 peft==0.13.1
 fraction
+wandb

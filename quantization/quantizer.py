@@ -24,12 +24,14 @@ class Round(Function):
 class Floor(Function):
     @staticmethod
     def forward(self, input):
+        # print('forward ', input)
         sign = torch.sign(input)
         output = sign * torch.floor(input)
         return output
 
     @staticmethod
     def backward(self, grad_output):
+        # print('backward' , grad_output)
         grad_input = grad_output.clone()
         return grad_input
 

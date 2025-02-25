@@ -16,8 +16,19 @@ export W_P=0.0
 export DO_CR=$3
 
 export NUM_NODES=1
-export NUM_GPUS=4
-export MAX_MEMORY="24000MB"
+
+if [ -z "$SKU" ]; then
+    NUM_GPUS=4
+    MAX_MEMORY="24000MB"
+else
+    NUM_GPUS=$(echo "$SKU" | sed -E 's/.*G([0-9]+)-.*/\1/')
+    MAX_MEMORY_GB=$(echo "$SKU" | sed -E 's/([0-9]+)G.*/\1/')
+    MAX_MEMORY=$((MAX_MEMORY_GB * 1000))MB
+fi
+
+export NUM_GPUS
+export MAX_MEMORY
+
 export THRESHOLD_PATH=../threshold/${MODEL_NAME}/${MODEL_NAME}-${ATTN_SP}.txt
 export NUM_TRAIN_EPOCHS=4
 
@@ -34,3 +45,5 @@ bash train.sh \
     ${MODEL_NAME}
 
 cd ..
+
+bash tools/run_test_task.sh $1 $2 $3
