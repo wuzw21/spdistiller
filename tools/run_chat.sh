@@ -1,9 +1,9 @@
 #!/bin/bash
 
-export MODEL_DIR=/data/wzw/models
-export MODEL_NAME=Meta-Llama-3-8B
+export MODEL_DIR=/data/wzw/models/Mixtral
+export MODEL_NAME=Mixtral-8x7B-v0.1
 export MODEL=${MODEL_DIR}/${MODEL_NAME}
-export TEST_TASK=mmlu
+export TEST_TASK=wiki
 export CUDA_VISIBLE_DEVICES=0
 
 export ENABLE_PREDICTOR=1

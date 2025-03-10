@@ -1,6 +1,6 @@
 import torch
 from torch import Tensor, device, dtype, nn
-from quantizer import *
+from .quantizer import *
 from tqdm import tqdm
 from bitsandbytes.functional import quantize_4bit, dequantize_4bit
 
@@ -116,6 +116,36 @@ def quant_and_dequant_tensor_q4_0(inp, do_transpose=False):
     inp.data = t.data
 
 
+def quant_and_dequant_tensor_q4_0_v2(x, do_transpose=False):
+    x = x.permute(0, 1) if do_transpose else x
+    # print(x.device)
+    org_w_shape = x.shape
+
+    q_group_size = 64
+    if q_group_size > 0:
+        assert org_w_shape[-1] % q_group_size == 0
+        x = x.reshape(-1, q_group_size)
+    assert x.dim() == 2
+
+    # Quant.
+    x = x.to(dtype=torch.float32, device=x.device)
+
+    abs_max_val = (x.abs().amax(dim=1, keepdim=True)) / -8
+    #print("abs_max_val:", abs_max_val)
+    x = Floor.apply(torch.minimum(torch.ones_like(x, device=x.device) * 15.0, x * (1.0 / abs_max_val) + 8.5))
+    #print("x:", x)
+
+    # Dequant.
+    x = (x - 8) * abs_max_val
+
+    x = x.to(dtype=torch.bfloat16, device=x.device)
+
+    x = x.reshape(org_w_shape)
+
+    x = x.permute(0, 1) if do_transpose else x
+
+    return x
+
 def quant_and_dequant_model_q4_0(model):
     layers = model.model.layers
     for i in tqdm(range(0, len(layers)), desc="Quantizing"):
@@ -143,7 +173,8 @@ def quant_and_dequant_model_q4_0(model):
             else:
                 do_transpose = False
 
-            quant_and_dequant_tensor_q4_0(weight, do_transpose)
+            quant_and_dequant_tensor_q4_0_v2(weight, do_transpose)
 
             if from_weights_map:
                 weights_map["weight"] = weight.to("cpu")
+

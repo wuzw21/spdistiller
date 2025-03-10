@@ -28,7 +28,7 @@ echo $SKU
 echo $NUM_GPUS
 echo $MAX_MEMORY
 
-export SPARSE_STRATEGY="Static"
+SPARSE_STRATEGY=$4
 if [ "$SPARSE_STRATEGY" = "Static" ]; then
     export THRESHOLD_PATH="../threshold/${MODEL_NAME}/${MODEL_NAME}-${ATTN_SP}.txt"
 else
@@ -41,8 +41,11 @@ export TEMPERATURE=0.2
 
 cd train
 
+# mix_wikitext_alpaca_c4_15000.json
+# mix_alpaca_c4_9000
+
 bash train_amlt.sh \
-    ${AMLT_DATA_DIR}/datasets/${MODEL_NAME}/mix_alpaca_c4_9000.json \
+    ${AMLT_DATA_DIR}/datasets/${MODEL_NAME}/mix_wikitext_alpaca_c4_15000.json \
     ${AMLT_OUTPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64/ \
     ${AMLT_OUTPUT_DIR}/logs/${MODEL_NAME}/int4-g64/ \
     ${NUM_TRAIN_EPOCHS} \
@@ -51,4 +54,4 @@ bash train_amlt.sh \
 
 cd ..
 
-bash tools/run_test_task_amlt.sh $1 $2 $3 ${AMLT_OUTPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64
+bash tools/run_test_task_amlt.sh $1 $2 $3 $4 ${AMLT_OUTPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64

@@ -438,27 +438,5 @@ def train():
     trainer.save_state()
     safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)
 
-    def safe_save_args_for_hf_trainer(output_dir):
-        # 保存参数到 JSON 文件
-        params_path = os.path.join(output_dir, "all_params.json")
-        with open(params_path, "w") as f:
-            json.dump({
-                "model_args": model_args.__dict__,
-                "data_args": data_args.__dict__,
-                "training_args": training_args.__dict__
-            }, f, indent=4)
-
-        env_path = os.path.join(output_dir, "environment_variables.json")
-        with open(env_path, "w") as f:
-            json.dump(dict(os.environ), f, indent=4)
-        
-        # 删除检查点文件夹
-        ckpt_dir = os.path.join(output_dir, "checkpoint-*")
-        for d in glob.glob(ckpt_dir):
-            os.rmdir(d)  # 或者使用 shutil.rmtree(d) 删除非空文件夹
-
-    # 调用保存函数
-    safe_save_args_for_hf_trainer(training_args.output_dir)
-
 if __name__ == "__main__":
     train()

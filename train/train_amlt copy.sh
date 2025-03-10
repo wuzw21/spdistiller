@@ -36,11 +36,6 @@ export ENABLE_TENSOR_SAVER=0
 # --evaluation_strategy "steps"
 # --eval_steps 4
 # --bits 4 --quant_type Q4_0 --q_group_size 64
-quant_type=Q4_0
-bits=4
-# quant_type=ste-n2f3
-# bits=3
-
 deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
     --hostfile=hostfile_local --no_ssh --node_rank=0 \
     --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
@@ -66,24 +61,12 @@ deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
     --logging_steps 1 \
     --report_to "none" \
     --deepspeed config/zero.json \
-    --bits ${bits} \
-    --quant_type ${quant_type} \
+    --bits 4 \
+    --quant_type Q4_0 \
     --q_group_size 64 \
     --train_kd True \
     --kd_loss_type "cakld" \
     --max_train_samples 999999 \
     --max_memory ${MAX_MEMORY} \
     --evaluation_strategy "steps" \
-    --eval_steps 1000
-
-cd ..
-
-cd test/general
-
-python wiki_ppl.py --model ${SAVE_PATH} --quant_type int --bits ${bits} --group_size 128
-
-cd ..
-
-cd ..
-
-cd train
+    --eval_steps 500

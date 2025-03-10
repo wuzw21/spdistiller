@@ -6,7 +6,7 @@ import transformers
 import numpy as np
 from dataclasses import dataclass, field
 from typing import Optional, Dict
-from qlinear import convertModelToQuant, quant_and_dequant_model_q4_0
+from qlinear import convertModelToQuant
 
 
 IGNORE_INDEX = -100
@@ -281,7 +281,7 @@ def main():
     #print("converting the model to qat, this may take a while...")
     #qmodel, _ = convertModelToQuant(model, compute_dtype=torch.bfloat16, quant_type=training_args.quant_type, q_group_size=training_args.q_group_size)
     qmodel = model
-    quant_and_dequant_model_q4_0(qmodel)
+    # quant_and_dequant_model_q4_0(qmodel)
 
     print("loading Teacher Model...")
     teacher_model = transformers.AutoModelForCausalLM.from_pretrained(

@@ -2,7 +2,7 @@ description: GCR Bit Distiller
 
 target:
   service: sing
-  name: msroctovc
+  name: msrresrchvc
   workspace_name: srgxws@srgx
 
 environment:
@@ -18,7 +18,7 @@ data:
   remote_dir: gcrbitdistillerdata/
 
 jobs:
-- name: gcrbitdistillergenerateteacherdata
+- name: generateteacherdata-Llama-2-7b-wiki
   sku: 40G4-A100
   command:
   - bash tools/generate_teacher_data_amlt.sh
@@ -31,21 +31,26 @@ jobs:
   submit_args:
     env:
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
+      SKU: 40G4-A100
 
 - name: gcrbitdistiller
-  sku: 40G4-A100
+  sku: 80G4-A100
   command:
     - bash tools/run_kd_qat_amlt.sh $EXTRA_ARGS
+    # - sleep infinity
   mpi: False
   process_count_per_node: 0
   identity: managed
+  sla_tier: Premium
+  priority: high  
+  execution_mode: basic
   submit_args:
     env:
       NCCL_DEBUG: info
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
-      SKU: 40G4-A100
+      SKU: 80G4-A100
 
-- name: gcrbitdistiller_test_task
+- name: gcr_test_task
   sku: 40G4-A100
   command:
   - bash tools/run_test_task_amlt.sh $EXTRA_ARGS
@@ -67,5 +72,17 @@ jobs:
   submit_args:
     env:
       SKU: 40G4-A100
+      NCCL_DEBUG: info
+      _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
+- name: gcr_generate_threshold
+  sku: 80G4-A100
+  command:
+  - bash tools/run_generate_threshold_amlt.sh $EXTRA_ARGS
+  mpi: False
+  process_count_per_node: 0
+  identity: managed
+  submit_args:
+    env:
+      SKU: 80G4-A100
       NCCL_DEBUG: info
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai

@@ -5,12 +5,12 @@ export MODEL_NAME=$1
 export TEST_TASK=mmlu
 
 
-# 检查 $4 是否有值
-if [ -n "$4" ]; then
-    # 如果 $4 有值，则使用 $4
-    export MODEL=$4
+# 检查 $5 是否有值
+if [ -n "$5" ]; then
+    # 如果 $5 有值，则使用 $5
+    export MODEL=$5
 else
-    # 如果 $4 为空，则按照原逻辑处理
+    # 如果 $5 为空，则按照原逻辑处理
     if [ -n "$AMLT_MAP_INPUT_DIR" ]; then
         # 如果 AMLT_MAP_INPUT_DIR 存在，则使用它
         export MODEL=${AMLT_MAP_INPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64
@@ -37,7 +37,7 @@ export ATTN_SP=$2
 export MLP_SP=$2
 export W_P=0
 export DO_CR=$3
-SPARSE_STRATEGY="Static"
+SPARSE_STRATEGY=$4
 if [ "$SPARSE_STRATEGY" = "Static" ]; then
     export THRESHOLD_PATH="../threshold/${MODEL_NAME}/${MODEL_NAME}-${ATTN_SP}.txt"
 else
