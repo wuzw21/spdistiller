@@ -15,7 +15,7 @@ sys.path.insert(0, project_root)
 print(project_root)
 from utils.sparse_hook import prepare_sparse_hook
 from utils.models import get_llm
-from quantization.qlinear import quant_and_dequant_model_q4_0,find_layers
+from quantization.qlinear import quant_and_dequant_model_q4_0
 
 
 def parse_args():
@@ -114,7 +114,7 @@ def process_compressed_pred(compressed_pred, output_file, layer_idx, weight_idx)
     print("-" * 40)
 
 def debug_test(model):
-    global_weight_preditor = model.model.global_weight_preditor
+    global_weight_preditor = model.predictor
     if os.environ.get('DEBUG_CROSSLAYER','0') != '0' :
         print(f"Total elements: {global_weight_preditor.sparse_params[0]}")
         print(f"Zero elements: {global_weight_preditor.sparse_params[1]}")
@@ -157,7 +157,7 @@ def debug_test(model):
 
 def eval_for_sp_config(model_path, model, tokenizer, task_list, num_shot, limit, sp_config, file_path, strategy):
     print("sp_config: ", sp_config, "num_shot: ", num_shot)
-    global_weight_preditor = model.model.global_weight_preditor
+    global_weight_preditor = model.predictor
     global_weight_preditor.reset()
     # global_weight_preditor = None
     if global_weight_preditor is not None:
@@ -191,8 +191,6 @@ def main():
 
     print(f"loading llm model {args.model}")
     model = get_llm(args.model)
-    print(model)
-    model.predictor=model.model.global_weight_preditor
     prepare_sparse_hook(model)
     model.eval()
     tokenizer = AutoTokenizer.from_pretrained(args.model, use_fast=False)
@@ -223,7 +221,7 @@ def main():
             if args.test_all and args.sparse_strategy == 'Static':
                 model_name = os.environ.get('MODEL_NAME')
                 sparse = sp_config[0]
-                filepath = f'../threshold/{model_name}/{model_name}-{sparse}.txt'
+                filepath = f'../threshold/{model_name}/sparse-{sparse}.json'
             else :
                 filepath = args.file_path
             eval_for_sp_config(args.model, model, tokenizer, task_list, num_shot, limit, sp_config, filepath, args.sparse_strategy)

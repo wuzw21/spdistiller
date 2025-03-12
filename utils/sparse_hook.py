@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM,AutoTokenizer
+from .weight_preditor import _init_weight_predictor
 import re
 
 def sparse_hook(module, input, predictor, layer_id, weight_id):
@@ -17,7 +18,8 @@ def get_layer_id_from_prefix(prefix) -> int:
 
 def traverse_and_register_hooks(model):
     if not hasattr(model, 'predictor'):
-        model.predictor = None
+        print('None sparse predictor, new predictor')
+        model.predictor = _init_weight_predictor()
         
     weight_map = []   # (layer_id, weight_name, weight_id)
     weight_counters = {}  # count weight_id
@@ -59,13 +61,19 @@ def traverse_and_register_hooks(model):
         model.predictor.set_layers_and_weights(num_layers, weight_counters, weight_map)
     return weight_map
 
-
-
 def prepare_sparse_hook(model) :
     print(model)
-    print("Printing model layers...")
+    print('begin model sparse hook setting...')
     weight_map = traverse_and_register_hooks(model)
+    print('finish model sparse hook setting...')
+    filtered = sorted([t for t in weight_map if t[0] == 0], key=lambda t: t[2])
+    print("Filtered elements weight-name / weight-id")
+    for elem in filtered:
+        print('weight_id', elem[2], 'weight_name: ', elem[1])
     #   print(weight_map)
+
+def set_sparse_infer(model, s=1) :
+    model.predictor.set_sparse_infer(s)
 
 def main() :
     # 创建模型

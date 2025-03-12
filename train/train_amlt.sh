@@ -24,7 +24,7 @@ export MODEL_PATH=$5
 export MODEL_NAME=$6
 
 export ENABLE_PREDICTOR=1
-export ENABLE_SPARSE_INFER=1
+export ENABLE_SPARSE_INFER=0
 export ENABLE_TENSOR_SAVER=0
 
 #rm -rf /job/hostfile
@@ -53,8 +53,8 @@ deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
     --num_train_epochs ${NUM_TRAIN_EPOCHS} \
     --bf16 True \
     --seed 42 \
-    --per_device_train_batch_size 4 \
-    --per_device_eval_batch_size 4 \
+    --per_device_train_batch_size 2 \
+    --per_device_eval_batch_size 2 \
     --gradient_accumulation_steps 8 \
     --gradient_checkpointing True \
     --load_best_model_at_end False \
@@ -69,12 +69,12 @@ deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
     --bits ${bits} \
     --quant_type ${quant_type} \
     --q_group_size 64 \
-    --train_kd True \
+    --train_kd False \
     --kd_loss_type "cakld" \
     --max_train_samples 999999 \
     --max_memory ${MAX_MEMORY} \
     --evaluation_strategy "steps" \
-    --eval_steps 1000
+    --eval_steps 20
 
 cd ..
 

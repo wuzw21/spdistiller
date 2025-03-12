@@ -2,29 +2,17 @@
 
 export MODEL_NAME=$1
 # export MODEL_NAME=Phi-3.5-mini-instruct
-export TEST_TASK=mmlu
 
-
-# 检查 $5 是否有值
-if [ -n "$5" ]; then
-    # 如果 $5 有值，则使用 $5
-    export MODEL=$5
+if [ -n "$AMLT_MAP_INPUT_DIR" ]; then
+    export MODEL=${AMLT_MAP_INPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64
 else
-    # 如果 $5 为空，则按照原逻辑处理
-    if [ -n "$AMLT_MAP_INPUT_DIR" ]; then
-        # 如果 AMLT_MAP_INPUT_DIR 存在，则使用它
-        export MODEL=${AMLT_MAP_INPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64
-    else
-        # 如果 AMLT_MAP_INPUT_DIR 不存在，则使用 AMLT_DATA_DIR
-        export MODEL=${AMLT_DATA_DIR}/models/${MODEL_NAME}
-    fi
+    export MODEL=${AMLT_DATA_DIR}/models/${MODEL_NAME}
 fi
 
 echo "MODEL path set to: $MODEL"
-# 
-# export MODEL=/data/wzw/models/Llama-3.1-8B-Instruct
+
 export ENABLE_PREDICTOR=1
-export ENABLE_SPARSE_INFER=1
+export ENABLE_SPARSE_INFER=0
 export ENABLE_TENSOR_SAVER=0
 
 # unused parameters
@@ -38,8 +26,11 @@ export MLP_SP=$2
 export W_P=0
 export DO_CR=$3
 SPARSE_STRATEGY=$4
+export TEST_TASK=$5
+export TEST_ALL=$6
+
 if [ "$SPARSE_STRATEGY" = "Static" ]; then
-    export THRESHOLD_PATH="../threshold/${MODEL_NAME}/${MODEL_NAME}-${ATTN_SP}.txt"
+    export THRESHOLD_PATH="../threshold/${MODEL_NAME}/sparse-${ATTN_SP}.json"
 else
     export THRESHOLD_PATH="zwwz"
 fi
@@ -63,5 +54,6 @@ python test_task.py \
     --num_shot=0 \
     --do_cr=${DO_CR} \
     --file_path=${THRESHOLD_PATH} \
-    --sparse_strategy=${SPARSE_STRATEGY}
+    --sparse_strategy=${SPARSE_STRATEGY} \
+    --test_all=${TEST_ALL}
 cd ..

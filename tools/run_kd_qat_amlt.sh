@@ -1,7 +1,5 @@
 export AMLT_MODE=1
 
-# bash ./run_kd_qat.sh "$@"
-
 export MODEL_NAME=$1
 export MODEL_PATH=${AMLT_DATA_DIR}/models/${MODEL_NAME}
 
@@ -30,7 +28,7 @@ echo $MAX_MEMORY
 
 SPARSE_STRATEGY=$4
 if [ "$SPARSE_STRATEGY" = "Static" ]; then
-    export THRESHOLD_PATH="../threshold/${MODEL_NAME}/${MODEL_NAME}-${ATTN_SP}.txt"
+    export THRESHOLD_PATH="../threshold/${MODEL_NAME}/sparse-${ATTN_SP}.json"
 else
     export THRESHOLD_PATH="zwwz"
 fi
@@ -54,4 +52,6 @@ bash train_amlt.sh \
 
 cd ..
 
-bash tools/run_test_task_amlt.sh $1 $2 $3 $4 ${AMLT_OUTPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64
+export AMLT_MAP_INPUT_DIR=${AMLT_OUTPUT_DIR}
+
+bash tools/run_test_task_amlt.sh $1 $2 $3 $4 $5 $6

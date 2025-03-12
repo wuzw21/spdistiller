@@ -1,58 +1,61 @@
-from transformers import AutoModelForCausalLM
-import time
-from accelerate import infer_auto_device_map, dispatch_model
-def get_llm(model_path):
-    model = AutoModelForCausalLM.from_pretrained(
-        model_path, 
-        torch_dtype="auto",
-        low_cpu_mem_usage=True,
-        device_map="balanced",
-        trust_remote_code=True
-    )
+    from transformers import AutoModelForCausalLM
+    import time
+    from accelerate import infer_auto_device_map, dispatch_model
+    import os
+    import torch
+    from transformers import AutoModelForCausalLM, infer_auto_device_map
 
-    if "70b" in model_path or "70B" in model_path:
-        #max_memory = {0: "68GiB", 1: "80GiB", "cpu": "128GiB"}
-        max_memory = {0: "36GiB", 1: "36GiB", 2: "36GiB", 3: "36GiB", "cpu": "128GiB"}
-    elif "8x7B" in model_path:
-        #max_memory = {0: "24GiB", 1: "80GiB", "cpu": "128GiB"}
-        max_memory = {0: "32GiB", 1: "32GiB", 2: "32GiB", "cpu": "128GiB"}
-    elif "13b" in model_path:
-        max_memory = {0: "16GiB", 1: "16GiB", "cpu": "128GiB"}
-        #max_memory = {0: "8GiB", 1: "8GiB", 2: "8GiB", 3: "8GiB", "cpu": "128GiB"}
-    elif "7b" in model_path or "8B" in model_path:
-        #max_memory = {0: "32GiB", "cpu": "128GiB"}
-        #max_memory = {0: "8GiB", 1: "8GiB", "cpu": "128GiB"}
-        #max_memory = {0: "1MiB", 1: "32GiB", "cpu": "128GiB"}
-        max_memory = {0: "24GiB", 1: "24GiB", 2: "24GiB", 3: "24GiB", "cpu": "128GiB"}
-    elif 'mini' in model_path :
-        max_memory = {0: "4GiB", 1: "4GiB", 2: "4GiB", 3: "4GiB", "cpu": "128GiB"}
-    else:
-        max_memory = {0: "32GiB", 1: "32GiB", 2: "32GiB", "cpu": "128GiB"}
-    print("max_memory:", max_memory)
-    # kwargs = {"max_memory": max_memory} if len(max_memory) else {}
-    kwargs = {}
-    device_map = infer_auto_device_map(
-        model,
-        no_split_module_classes=[
-            "OPTDecoderLayer", "LlamaDecoderLayer", "BloomBlock", "MPTBlock", "MixtralDecoderLayer", "DecoderLayer"],
-        **kwargs
-    )
-    stime = time.time()
-    # model = dispatch_model(model, device_map=device_map)
-    print(f"load_time: {time.time() - stime:.3f} sec")
+    def get_available_gpu_memory(device=0):
+        if torch.cuda.is_available():
+            free, total = torch.cuda.mem_get_info(device)  # 返回值以字节为单位
+            free_gib = free / (1024 ** 3)
+            total_gib = total / (1024 ** 3)
+            return free_gib, total_gib
+        else:
+            return None, None
 
-    model.seqlen = model.config.max_position_embeddings 
+    def get_max_memory():
+        max_memory = {}
+        num_devices = torch.cuda.device_count()
+        for device in range(num_devices):
+            free_gib, total_gib = get_available_gpu_memory(device)
+            if free_gib is not None:
+                allocation = free_gib * 0.9  # 分配90%空闲内存
+                max_memory[device] = f"{allocation:.0f}GiB"
+        max_memory["cpu"] = "128GiB"
+        return max_memory
 
-    model.config.pretraining_tp = 1
-    model.config.use_cache = False
-    model.config.output_hidden_states = False
-    model.config.output_attentions = False
+    def get_llm(model_path):
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path, 
+            torch_dtype="auto",
+            low_cpu_mem_usage=True,
+            device_map="balanced",
+            trust_remote_code=True
+        )
 
-    model.config.do_sample = False
-    model.config.temperature = 1.0
-    model.config.top_p = 1.0
-    model.config._attn_implementation_internal = "eager"
+        max_memory = get_max_memory()
+        print("max_memory:", max_memory)
+        
+        device_map = infer_auto_device_map(model, max_memory=max_memory)
+        print("Device map:", device_map)
+        
+        stime = time.time()
+        # model = dispatch_model(model, device_map=device_map)
+        print(f"load_time: {time.time() - stime:.3f} sec")
 
-    
-    print("model.hf_device_map:", model.hf_device_map)
-    return model
+        model.seqlen = model.config.max_position_embeddings 
+
+        model.config.pretraining_tp = 1
+        model.config.use_cache = False
+        model.config.output_hidden_states = False
+        model.config.output_attentions = False
+
+        model.config.do_sample = False
+        model.config.temperature = 1.0
+        model.config.top_p = 1.0
+        model.config._attn_implementation_internal = "eager"
+
+        
+        print("model.hf_device_map:", model.hf_device_map)
+        return model

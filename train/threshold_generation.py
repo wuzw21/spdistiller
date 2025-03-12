@@ -16,7 +16,6 @@ sys.path.insert(0, project_root)
 print(project_root)
 from utils.sparse_hook import prepare_sparse_hook
 from utils.models import get_llm
-from quantization.qlinear import quant_and_dequant_model_q4_0,find_layers
 
 
 def parse_args():
@@ -94,8 +93,6 @@ def main():
 
     print(f"loading llm model {args.model}")
     model = get_llm(args.model)
-    print(model)
-    model.predictor=model.model.global_weight_preditor
     prepare_sparse_hook(model)
     model.eval()
     tokenizer = AutoTokenizer.from_pretrained(args.model, use_fast=False)

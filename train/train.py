@@ -1,7 +1,10 @@
 import sys
-sys.path.append("../quantization")
-from qlinear import QLinear, convertModelToQuant
-from clip_utils import apply_clip
+import os
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
+print(project_root)
+from quantization.qlinear import QLinear, convertModelToQuant
+from quantization.clip_utils import apply_clip
 
 import os
 import copy
@@ -24,6 +27,8 @@ from mytrainer import KDTrainer
 import random
 from tqdm import tqdm
 from datasets import load_dataset
+
+from utils.sparse_hook import prepare_sparse_hook
 
 
 def _make_r_io_base(f, mode: str):
@@ -329,13 +334,13 @@ def train():
         torch_dtype=torch.bfloat16,
         device_map=None,
     )
-    global_weight_preditor = model.model.global_weight_preditor
+    prepare_sparse_hook(model)
+    global_weight_preditor = model.predictor
     if global_weight_preditor is not None:
         attn_sp, mlp_sp, w_p, do_cr = get_sparsity_configs()
         global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
         global_weight_preditor.set_do_pre_prediction(do_cr)
         global_weight_preditor.set_sparsity_threshold(data_args.threshold_path)
-
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         model_args.model_name_or_path,
         cache_dir=training_args.cache_dir,

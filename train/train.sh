@@ -53,12 +53,12 @@ deepspeed --num_nodes=${NUM_NODES} --num_gpus=${NUM_GPUS} \
     --load_best_model_at_end False \
     --save_strategy "epoch" \
     --save_total_limit 1 \
-    --learning_rate 5e-5 \
+    --learning_rate 8e-6 \
     --lr_scheduler_type "constant" \
     --weight_decay 0. \
     --logging_steps 1 \
     --report_to "none" \
-    --deepspeed config/zero3.json \
+    --deepspeed config/zero.json \
     --bits 4 \
     --quant_type Q4_0 \
     --q_group_size 64 \
@@ -67,4 +67,4 @@ deepspeed --num_nodes=${NUM_NODES} --num_gpus=${NUM_GPUS} \
     --max_train_samples 999999 \
     --max_memory ${MAX_MEMORY} \
     --evaluation_strategy "steps" \
-    --eval_steps  20
+    --eval_steps  1

@@ -8,7 +8,10 @@ from transformers import AutoTokenizer, LlamaTokenizer, AutoModelForCausalLM
 import sys
 sys.path.append("../")
 from test_utils import pseudo_quantize_model_weight
-
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
+print(project_root)
+from utils.sparse_hook import prepare_sparse_hook
 
 def get_wikitext2(nsamples, seed, seqlen, model):
     from datasets import load_dataset
@@ -141,7 +144,7 @@ def main():
 
     print("loading the model...")
     model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch.bfloat16, use_safetensors=True, low_cpu_mem_usage=True)
-
+    prepare_sparse_hook(model)
     q_config = {
         "zero_point": True,  # by default True
         "q_group_size": args.group_size,  # whether to use group quantization

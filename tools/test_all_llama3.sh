@@ -28,5 +28,6 @@ for i in "${!MODELS[@]}"; do
     MODEL="${MODELS[$i]}"
     SPARSE="${SPARSES[$i]}"
     DO_CR=0
-    bash tools/run_test_task_amlt.sh "${MODEL_NAME}" "${SPARSE}" "${DO_CR}" "${SPARSE_STRATEGY}" "${MODEL}"
+    export AMLT_MAP_INPUT_DIR=${MODEL}
+    bash tools/run_test_task_amlt.sh "${MODEL_NAME}" "${SPARSE}" "${DO_CR}" "${SPARSE_STRATEGY}"
 done

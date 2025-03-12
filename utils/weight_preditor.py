@@ -1,153 +1,9 @@
-
 import os
 import torch
-import numpy as np
-from tqdm import tqdm
 import json
-import math
-import matplotlib.pyplot as plt
-import time
-class ActivationModule:
-    def __init__(self) :
-        self.activations = None
-        self.histograms = None
-        self.file_path = None
-        self.num_layers = 0
-        self.num_weights = 0
-    def set_init_dict(self , num_layers , num_weights, file_path) :
-        self.num_layers = num_layers
-        self.num_weights = num_weights
-        self.activations = [[[] for id in range(num_weights)] for _ in range(num_layers)]
-        self.histograms= [[{} for id in range(num_weights)] for _ in range(num_layers)]
-        self.file_path = file_path
-        
-    def fd_th(self, weight, sp) :
-        tensor = weight.flatten().cpu().numpy()  # 将张量转换为 NumPy 数组
-        threshold = np.percentile(tensor, q=sp)  # 计算分位数
-        return threshold.item()        
 
-    def cal_histograms(self, activations):
-        flattened_activations = activations.flatten().detach().to('cuda')
+from .activations import ActivationModule
 
-        acts = torch.sort(flattened_activations)[0]
-
-        lower_bound = acts[int(0.01 * len(acts))]
-        upper_bound = acts[int(0.99 * len(acts))]
-        filtered_activations = flattened_activations[
-            (flattened_activations >= lower_bound) & (flattened_activations <= upper_bound)
-        ]
-
-        bins = 1000
-
-        histogram, bin_edges = np.histogram(filtered_activations.cpu().numpy(), bins=bins)
-        bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
-
-        return histogram, bin_edges, bin_centers
-
-    def visualize_histogram(self, layer_idx, weight_idx):
-        histograms_path = os.path.join(self.file_path, f"layer_{layer_idx}", f"weight_{weight_idx}", "histograms.pt")
-
-        # 加载直方图数据
-        histogram_data = torch.load(histograms_path, map_location='cpu')
-        histogram, bin_edges, bin_centers = histogram_data['histogram'], histogram_data['bin_edges'], histogram_data['bin_centers']
-
-        plt.figure(figsize=(8, 6))
-        plt.bar(bin_centers, histogram, width=(bin_edges[-1] - bin_edges[0]) / len(bin_edges), alpha=0.7, color='blue')
-        plt.xlabel("Value")
-        plt.ylabel("Frequency")
-        plt.title(f"Histogram for Layer {layer_idx}, Weight {weight_idx}")
-
-        # 先保存再显示
-        plt.savefig(os.path.join(self.file_path, f"layer_{layer_idx}", f"weight_{weight_idx}", "histograms.png"))
-        plt.show()
-
-    
-    def save_layer_weight(self, layer_idx, weight_idx) :
-        if not self.activations[layer_idx][weight_idx]:
-            print('None', self.activations[layer_idx][weight_idx])
-            return 
-        else :   
-            layer_path = os.path.join(self.file_path, f"layer_{layer_idx}", f"weight_{weight_idx}")
-            os.makedirs(layer_path, exist_ok=True)
-
-            activations_path = os.path.join(layer_path, "activations.pt")
-            combine_activations = torch.cat(self.activations[layer_idx][weight_idx], dim=0)
-            torch.save(combine_activations, activations_path)
-
-            histograms_path = os.path.join(layer_path, "histograms.pt")
-            histogram, bin_edges, bin_centers = self.cal_histograms(combine_activations)
-            # print({'histogram': histogram, 'bin_edges': bin_edges, 'bin_centers': bin_centers})
-            torch.save({'histogram': histogram, 'bin_edges': bin_edges, 'bin_centers': bin_centers}, histograms_path)
-
-    def clear_layer_weight(self, layer_idx, weight_idx) :
-        print('clear', layer_idx, weight_idx)
-        self.activations[layer_idx][weight_idx] = []
-        
-    def grab_activations(self, x, layer_idx, weight_idx):
-        if x.size(1) > 1:  # Check if seq_len > 1
-            print('grab ', layer_idx, weight_idx, x.size())
-            self.activations[layer_idx][weight_idx].append(x.detach().squeeze(0).cpu().float())
-            
-            start_time = time.time() 
-            self.save_layer_weight(layer_idx, weight_idx)
-            self.clear_layer_weight(layer_idx, weight_idx)
-            # 可视化直方图
-            self.visualize_histogram(layer_idx, weight_idx)
-            visualize_time = time.time() - start_time  
-            
-            print(f"visualize_histogram ({layer_idx}, {weight_idx}) took {visualize_time:.6f} seconds")
-    
-    def save_activations(self):
-        for layer_idx in range(self.num_layers):
-            for weight_idx in range(self.num_weights) :
-                self.save_layer_weight(layer_idx, weight_idx)
-
-    def load_activations(self):
-        self.activations = [[[] for _ in range(self.num_weights)] for _ in range(self.num_layers)]
-        self.histograms = [[{} for _ in range(self.num_weights)] for _ in range(self.num_layers)]
-
-        for layer_idx in range(self.num_layers):
-            for weight_idx in range(self.num_weights):
-                layer_path = os.path.join(self.file_path, f"layer_{layer_idx}", f"weight_{weight_idx}")
-                
-                activations_path = os.path.join(layer_path, "activations.pt")
-                if os.path.exists(activations_path):
-                    self.activations[layer_idx][weight_idx] = torch.load(activations_path)
-                    
-                histograms_path = os.path.join(layer_path, "histograms.pt")
-                if os.path.exists(histograms_path):
-                    self.histograms[layer_idx][weight_idx] = torch.load(histograms_path)
-    
-    def find_threshold(self, sp, output_path):
-        thresholds = {}
-        for layer_idx in range(self.num_layers):
-            layer_thresholds = {}
-            for weight_idx in range(self.num_weights):
-                layer_path = os.path.join(self.file_path, f"layer_{layer_idx}", f"weight_{weight_idx}")
-                activations_path = os.path.join(layer_path, "activations.pt")
-                
-                if not os.path.exists(activations_path):
-                    continue
-
-                weight = torch.load(activations_path)
-                threshold = self.fd_th(torch.abs(weight), sp*100)
-                layer_thresholds[weight_idx]=threshold
-                print('find_threshold:  ', layer_idx, weight_idx, threshold)                
-                
-                del weight
-                
-                
-            thresholds[layer_idx]=layer_thresholds
-
-        # Save thresholds to output_path
-        os.makedirs(output_path, exist_ok=True)
-        save_path = os.path.join(output_path, f"sparse-{sp}.json")
-        with open(save_path,'w') as f:
-            json.dump(thresholds, f)
-        # print(thresholds)
-        # torch.save(thresholds, )
-        return thresholds
-        
 class STEFunction(torch.autograd.Function):
     """
     Straight-Through Estimator (STE) for the backward pass.
@@ -163,6 +19,7 @@ class STEFunction(torch.autograd.Function):
     def backward(ctx, grad_output):
         return grad_output, None  # Return gradient for input and None for mask
 
+
 class WeightPredictor(object):
     def __init__(self, model_name='Meta-Llama-3-8B', dtype=torch.float32, device=torch.device("cuda:0"), D=1024):
         self.model_name = model_name
@@ -177,9 +34,16 @@ class WeightPredictor(object):
 
         self.DO_CAL_ACTIVATIONS = False
         self.activations = ActivationModule()
+
+        self.sparse_infer = 1
+        self.sparse_params = [0,0]
         
         self.reset()
-        
+
+    def set_sparse_infer(self, s=1) :
+        self.sparse_infer = s
+    def is_sparse_infer(self) -> bool:
+        return self.sparse_infer
     def reset(self) :
         print('Init Reset')
         self.attn_sp = 0.0
@@ -205,6 +69,7 @@ class WeightPredictor(object):
         self.dtype = torch.bfloat16
         
     def set_sparsity_threshold(self, file_path=None) :
+        print('set_sparsity_threshold')
         if file_path == None :
             file_path = os.environ.get('THRESHOLD_PATH',None)
         if file_path == None : 
@@ -224,7 +89,7 @@ class WeightPredictor(object):
                         self.threshold[i][j] = layer_thresholds.get(f"{j}", 0.0)
                         
             self.sparsity_strategy = 'Static'
-            
+            # print(self.threshold)
             # print(self.threshold)
         else:
             self.sparsity_strategy = 'Dynamic'
@@ -302,22 +167,29 @@ class WeightPredictor(object):
 
         return preds, C
 
-    def get_pred(self, ilayer, iweight):
-        return self.preds[ilayer][iweight]
-
     def apply_pred(self, x, pred=None):
         return x if pred is None else x * pred.to(x.dtype).to(x.device)
     
     def generate_pred(self, ilayer, iweight, x) :
-        # print('grab ', ilayer, iweight, x.size())
         if self.DO_CAL_ACTIVATIONS == True:
             self.activations.grab_activations(x, ilayer, iweight)
-        if is_sparse_infer() == False:
+        if self.is_sparse_infer() == False:
             return x
         else :
+            # print('grab ', ilayer, iweight, x.size())
             pred, C = self.predict_by_x_thres(ilayer, iweight, x)
             if os.environ.get('DEBUG_CROSSLAYER','0') != '0' :
-                pass
+                # 统计 pred 中零值的数量和总元素数量
+                total_elements = pred.numel()
+                zero_elements = (pred == 0).sum().item()
+
+                # update self.sparse_params
+                self.sparse_params[0] += total_elements
+                self.sparse_params[1] += zero_elements
+
+                # zero_ratio = zero_elements / total_elements
+                # print(f"Layer {ilayer}, Weight {iweight}: Zero ratio in pred = {zero_ratio:.4f}")
+
 
             if os.environ.get('BACKWARD_STRATEGY','0') != '0' :
                 return self.apply_pred(x, pred)
@@ -347,18 +219,8 @@ class WeightPredictor(object):
         print('weight_counters', self.weight_counters)
         self.reset()
 
-global_weight_preditor = None
-
-def is_weight_predictor_enabled():
-    return os.environ.get("ENABLE_PREDICTOR", "0") == "1"
-
-def is_sparse_infer():
-    return os.environ.get("ENABLE_SPARSE_INFER", "0") == "1"
 
 def _init_weight_predictor(model_name=None):
-    global global_weight_preditor
-    if global_weight_preditor is not None:
-        raise KeyError('global_weight_preditor')
     
     dtype = torch.float32
     local_rank = os.environ.get("LOCAL_RANK","-1")
@@ -371,10 +233,6 @@ def _init_weight_predictor(model_name=None):
     print("Create and load preditor...")
     print("Local device:", device)
     # print("Checkpoint dir:", checkpoint_dir)
-    global_weight_preditor = WeightPredictor(model_name, dtype=dtype, device=device,)
-    global_weight_preditor.to_bf16()
-    return global_weight_preditor
-
-
-if is_weight_predictor_enabled():
-    _init_weight_predictor()
+    weight_preditor = WeightPredictor(model_name, dtype=dtype, device=device,)
+    weight_preditor.to_bf16()
+    return weight_preditor
