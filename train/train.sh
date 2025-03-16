@@ -53,8 +53,6 @@ deepspeed --num_nodes=${NUM_NODES} --num_gpus=${NUM_GPUS} \
     --load_best_model_at_end False \
     --save_strategy "epoch" \
     --save_total_limit 1 \
-    --learning_rate 8e-6 \
-    --lr_scheduler_type "constant" \
     --weight_decay 0. \
     --logging_steps 1 \
     --report_to "none" \
@@ -63,7 +61,7 @@ deepspeed --num_nodes=${NUM_NODES} --num_gpus=${NUM_GPUS} \
     --quant_type Q4_0 \
     --q_group_size 64 \
     --train_kd True \
-    --kd_loss_type "cakld" \
+    --kd_loss_type "reverse" \
     --max_train_samples 999999 \
     --max_memory ${MAX_MEMORY} \
     --evaluation_strategy "steps" \

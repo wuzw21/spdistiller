@@ -3,7 +3,8 @@ export OUTPUT_DIR=/data/wzw/models
 
 export MODEL_DIR=/data/wzw/models
 # export MODEL_NAME=Mixtral-8x7B-Instruct
-export MODEL_NAME=Meta-Llama-3-8B
+# export MODEL_NAME=Meta-Llama-3-8B
+export MODEL_NAME=Phi-3.5-mini-instruct
 export MODEL_PATH=${MODEL_DIR}/${MODEL_NAME}
 
 export ATTN_SP=0.6
@@ -32,8 +33,8 @@ export TEMPERATURE=0.2
 
 cd train
 
-bash train.sh \
-    ${DATA_DIR}/datasets/${MODEL_NAME}/mix_alpaca_c4_9000.json \
+bash train_python.sh \
+    ${DATA_DIR}/datasets/${MODEL_NAME}/mix_wikitext_alpaca_c4_15000.json \
     ${OUTPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64/ \
     ${OUTPUT_DIR}/logs/${MODEL_NAME}/int4-g64/ \
     ${NUM_TRAIN_EPOCHS} \

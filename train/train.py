@@ -310,9 +310,19 @@ def compute_metrics(eval_pred):
 
 
 def train():
+    try :
+        print(f"ROCm是否可用: {torch.cuda.is_available()}")  # 应返回True
+        print(f"设备数量: {torch.cuda.device_count()}")      # 显示已识别GPU数量
+        print(f"当前设备: {torch.cuda.current_device()}")    # 默认GPU索引
+        print(f"设备名称: {torch.cuda.get_device_name(0)}") # 返回"AMD Instinct MI300X"等标识[1,2](@ref)
+        print(torch.__version__)          # 应为ROCm编译版本（如2.3.0+rocm6.0）
+        print(torch.cuda.is_available())  # AMD GPU应返回True
+        print(torch.version.hip)          # 显示ROCm版本（如6.0.33863）
+    except KeyError as e:
+        pass
+        
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
-
     random.seed(TrainingArguments.seed)
     n_gpus = torch.cuda.device_count()
     max_memory = training_args.max_memory
@@ -328,6 +338,7 @@ def train():
         device_map = {'': local_rank}
         max_memory = {'': max_memory[local_rank]}
 
+    print('max_memory:' , max_memory, "device_map", device_map)
     print(f"loading {model_args.model_name_or_path} model")
     model = transformers.AutoModelForCausalLM.from_pretrained(
         model_args.model_name_or_path,
@@ -440,7 +451,7 @@ def train():
     else:
         trainer = Trainer(model=model, tokenizer=tokenizer, args=training_args, compute_metrics=compute_metrics, **data_module)
     trainer.train()
-    trainer.save_state()
+    # trainer.save_state()
     safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)
 
 if __name__ == "__main__":

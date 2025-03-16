@@ -41,9 +41,7 @@ bits=4
 # quant_type=ste-n2f3
 # bits=3
 
-deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
-    --hostfile=hostfile_local --no_ssh --node_rank=0 \
-    --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
+python train.py \
     --model_name_or_path ${MODEL_PATH} \
     --data_path ${DATA_PATH} \
     --threshold_path ${THRESHOLD_PATH} \

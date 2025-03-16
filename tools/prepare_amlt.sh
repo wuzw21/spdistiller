@@ -16,14 +16,6 @@ mkdir -p 3rdparty
 
 cd 3rdparty
 
-installBitsandbytes() {
-    git clone https://github.com/FuchengJia1996/bitsandbytes-Q4_0.git "bitsandbytes"
-    cd bitsandbytes
-    bash tools/build.sh
-    bash tools/install.sh
-    cd ..
-}
-
 installTransformers() {
     git clone -b wzw https://github.com/FuchengJia1996/transformers-pred.git "transformers"
     cd transformers
@@ -43,8 +35,6 @@ prepare() {
 }
 
 installTransformers
-
-# installBitsandbytes
 
 installLMEval
 

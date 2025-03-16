@@ -16,10 +16,10 @@
     "optimizer": {
       "type": "AdamW",
       "params": {
-        "lr": 8e-6,           // 与命令行参数一致
-        "betas": [0.9, 0.999],
-        "eps": 1e-8,
-        "weight_decay": 0.0   // 与命令行参数--weight_decay 0.一致
+        "lr": "auto",           // 与命令行参数一致
+        "betas": "auto",
+        "eps": "auto",
+        "weight_decay": "auto"   // 与命令行参数--weight_decay 0.一致
       }
     },
     "scheduler": {

@@ -13,3 +13,9 @@ LOCAL_RANK :
 THRESHOLD_PATH : 
 ACTIVATE_LAYER : 
 BACKWARD_STRATEGY : 
+
+bash tools/run_kd_qat_amlt.sh Mixtral-8x7B-Instruct 0.5 0 Static wiki 1
+bash tools/run_test_task_amlt.sh Mixtral-8x7B-Instruct 0.5 0 Static wiki 1
+export AMLT_DATA_DIR=/mnt/default/gcrbitdistillerdata
+export NCCL_DEBUG=INFO
+export NCCL_IB_DISABLE=1 
