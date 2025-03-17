@@ -25,3 +25,5 @@ Step 5: 链接到mymain
 target remote 127.0.0.1:5039
 
 Press C to continue
+
+可能出现的segment fault: su

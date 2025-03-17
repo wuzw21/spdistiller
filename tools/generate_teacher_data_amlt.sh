@@ -4,36 +4,34 @@ export OMP_NUM_THREADS=16
 
 export MODEL_NAME=Mixtral-8x7B-Instruct
 export MODEL_PATH=${AMLT_DATA_DIR}/models/${MODEL_NAME}
+export SPARSE=0.7
 
-SKU=$SKU
-echo "SKU: $SKU"
-export NUM_GPUS=$(echo "$SKU" | sed -E 's/.*G([0-9]+)-.*/\1/')
-echo "NUM_GPUS: $NUM_GPUS"
+NUM_GPUS=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
 
-echo $MODEL_NAME
-echo $MODEL_PATH
+datasets=("wikitext" "alpaca" "c4")
+max_sample=5000
+batch_size=16
 
-export ENABLE_PREDICTOR=0
-export ENABLE_SPARSE_INFER=0
-export ENABLE_TENSOR_SAVER=0
 cd data/generation
 
-# wikitext, 5000
-bash generate.sh ${MODEL_PATH} wikitext ${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME} 16 5000 ${NUM_GPUS}
+for dataset in "${datasets[@]}"; do
+    torchrun --nproc_per_node=$NUM_GPUS generate.py \
+        --base_model ${MODEL_PATH} \
+        --dataset_name $dataset \
+        --out_path ${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME} \
+        --batch_size $batch_size \
+        --max_sample $max_sample \
+        --threshold_path ../../threshold/${MODEL_NAME}/sparse-${SPARSE}.json
+done
 
-# # alpaca, 5000
-bash generate.sh ${MODEL_PATH} alpaca ${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME}/ 16 5000 ${NUM_GPUS}
+json_paths=()
+for dataset in "${datasets[@]}"; do
+    json_paths+=("${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME}/${dataset}_T0.2_N1024_S42_${max_sample}.json")
+done
 
-# # c4, 5000
-bash generate.sh ${MODEL_PATH} c4 ${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME}/ 16 5000 ${NUM_GPUS}
-
-JSON_PATH1="${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME}/wikitext_T0.2_N1024_S42_5000.json"
-JSON_PATH2="${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME}/alpaca_T0.2_N1024_S42_5000.json"
-JSON_PATH3="${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME}/c4_T0.2_N1024_S42_5000.json"
-
+# 合并 JSON 文件
 OUTPUT_JSON="${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME}/mix_wikitext_alpaca_c4_15000.json"
-
-python mix_data.py --output "$OUTPUT_JSON" --inputs "$JSON_PATH1" "$JSON_PATH2" "$JSON_PATH3"
+python mix_data.py --output "$OUTPUT_JSON" --inputs "${json_paths[@]}"
 
 cd ../..
 

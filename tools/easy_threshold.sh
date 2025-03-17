@@ -3,7 +3,7 @@ export CUDA_HOME=/usr/local/cuda-12.3
 
 
 # export MODEL_NAME=Llama-2-7b-chat-hf
-export MODEL_NAME=Meta-Llama-3-8B
+export MODEL_NAME=Qwen2.5-0.5B-Instruct
 # export MODEL_NAME=Mixtral-8x7B-Instruct
 # export MODEL=/data/wzw/models/Llama/${MODEL_NAME}
 

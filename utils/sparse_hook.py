@@ -3,6 +3,15 @@ import torch.nn as nn
 from transformers import AutoModelForCausalLM,AutoTokenizer
 from .weight_preditor import _init_weight_predictor
 import re
+import os
+
+def get_sparsity_configs():
+    attn_sp = float(os.environ.get("ATTN_SP",'0'))
+    mlp_sp = float(os.environ.get("MLP_SP",'0'))
+    w_p = float(os.environ.get("W_P",'0'))
+    do_cr = float(os.environ.get("DO_CR",'0'))
+    return attn_sp, mlp_sp, w_p, do_cr
+
 
 def sparse_hook(module, input, predictor, layer_id, weight_id):
     # print(input)

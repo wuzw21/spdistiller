@@ -34,7 +34,7 @@ jobs:
       SKU: 40G4-A100
 
 - name: gcrbitdistiller
-  sku: 80G8-A100
+  sku: 80G4-A100
   command:
     - bash tools/run_kd_qat_amlt.sh $EXTRA_ARGS
     # - sleep infinity
@@ -48,7 +48,7 @@ jobs:
     env:
       NCCL_DEBUG: info
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
-      SKU: 80G8-A100
+      SKU: 80G4-A100
 
 - name: gcr_test_task
   sku: 80G4-A100

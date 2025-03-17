@@ -70,7 +70,7 @@ deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
     --quant_type ${quant_type} \
     --q_group_size 64 \
     --train_kd False \
-    --kd_loss_type "cakld" \
+    --kd_loss_type "forward" \
     --max_train_samples 999999 \
     --max_memory ${MAX_MEMORY} \
     --evaluation_strategy "steps" \

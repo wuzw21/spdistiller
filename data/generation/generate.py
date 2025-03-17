@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from typing import Optional, Dict, Sequence, List
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
+from utils.sparse_hook import prepare_sparse_hook, get_sparsity_configs
+from utils.models import get_auto_batch_size
 import json
 from tqdm import tqdm
 import copy
@@ -161,6 +163,12 @@ def main(rank, args):
             base_model,
             torch_dtype=torch.bfloat16
         )
+    prepare_sparse_hook(model)
+    global_weight_preditor = model.predictor
+    if global_weight_preditor is not None:
+        attn_sp, mlp_sp, w_p, do_cr = get_sparsity_configs()
+        global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
+        global_weight_preditor.set_sparsity_threshold(args.threshold_path)
     model.config._attn_implementation = "eager"
     
     tokenizer = AutoTokenizer.from_pretrained(base_model, use_fast=False)
@@ -175,8 +183,11 @@ def main(rank, args):
 
     torch.cuda.set_device(rank)
     model.to(torch.cuda.current_device())
+    batch_size = get_auto_batch_size(model, args.batch_size)
     model = DDP(model, device_ids=[torch.cuda.current_device()])
     model.eval()
+
+    print(f"batch_size: {batch_size}")
 
     # Get the generation dataset
     gen_dataset, data_collator = make_supervised_data_module(tokenizer, args.dataset_name, args.max_sample)
@@ -233,7 +244,11 @@ def main(rank, args):
             all_outputs.append(temp)
 
     if rank == 0:
-        with open(args.out_path + f'/{args.dataset_name}_T{args.temperature}_N{args.max_new_tokens}_S{args.seed}_{args.max_sample}.json', 'w') as f:
+        path = os.path.join(args.out_path, f'{args.dataset_name}_T{args.temperature}_N{args.max_new_tokens}_S{args.seed}_{args.max_sample}.json')
+        print('finish', path)
+        directory = os.path.dirname(path)
+        os.makedirs(directory, exist_ok=True)
+        with open(path, 'w') as f:
             for item in all_outputs[:len(gen_dataset)]:
                 f.write(json.dumps(item) + '\n')
     dist.barrier()
@@ -250,6 +265,7 @@ if __name__ == "__main__":
     parser.add_argument("--temperature", type=int, default=0.7, help="generation temperature")
     parser.add_argument("--max_new_tokens", type=int, default=1024, help="max new tokens")
     parser.add_argument("--return_seq_num", type=int, default=1, help="return seq num")
+    parser.add_argument("--threshold_path", type=str, help="path to the threshold file")
     args = parser.parse_args()
 
     if not os.path.exists(args.out_path):

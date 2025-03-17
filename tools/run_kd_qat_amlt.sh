@@ -39,7 +39,7 @@ export TEMPERATURE=0.2
 
 cd train
 
-if [ "$MODEL_NAME" = "Meta-Llama-3-8B" ] || [ "$MODEL_NAME" = "Llama-2-7b-chat-hf" ]; then
+if [ "$MODEL_NAME" = "Meta-Llama-3-8B" ] || [ "$MODEL_NAME" = "Llama-2-7b-chat-hf" ] || [ "$MODEL_NAME" = "Llama-2-13b-chat-hf" ]; then
     DATASET="mix_alpaca_c4_9000.json"
 else
     DATASET="mix_wikitext_alpaca_c4_15000.json"

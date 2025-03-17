@@ -58,3 +58,32 @@ def get_llm(model_path):
     
     print("model.hf_device_map:", model.hf_device_map)
     return model
+
+def get_auto_batch_size(model, max_batch_size, min_batch_size=1):
+    """
+    动态调整 batch_size 以适应显存大小。
+    
+    Args:
+        model: 需要进行推理的模型。
+        max_batch_size: 最大 batch_size。
+        min_batch_size: 最小 batch_size。
+    
+    Returns:
+        合适的 batch_size。
+    """
+    batch_size = max_batch_size
+    while batch_size >= min_batch_size:
+        try:
+            # 尝试进行一次前向传播
+            dummy_input = torch.ones((batch_size, model.config.max_position_embeddings), dtype=torch.long).to(model.device)
+            with torch.no_grad():
+                model(dummy_input)
+            return batch_size
+        except RuntimeError as e:
+            # print('error:auto batch', batch_size, e)
+            if 'out of memory' in str(e):
+                batch_size //= 2
+                torch.cuda.empty_cache()
+            else:
+                raise e
+    return min_batch_size

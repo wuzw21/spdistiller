@@ -28,7 +28,14 @@ import random
 from tqdm import tqdm
 from datasets import load_dataset
 
-from utils.sparse_hook import prepare_sparse_hook
+from utils.sparse_hook import prepare_sparse_hook, get_sparsity_configs
+
+def get_last_checkpoint(output_dir: str) -> Optional[str]:
+    checkpoints = glob.glob(os.path.join(output_dir, "checkpoint-*"))
+    if not checkpoints:
+        return None
+    checkpoints = sorted(checkpoints, key=lambda ckpt: int(ckpt.split("-")[-1]))
+    return checkpoints[-1]
 
 
 def _make_r_io_base(f, mode: str):
@@ -291,13 +298,6 @@ def get_float_from_envs(name):
     else:
         return float(var)
 
-def get_sparsity_configs():
-    attn_sp = get_float_from_envs("ATTN_SP")
-    mlp_sp = get_float_from_envs("MLP_SP")
-    w_p = get_float_from_envs("W_P")
-    do_cr = get_int_from_envs("DO_CR")
-    return attn_sp, mlp_sp, w_p, do_cr
-
 import math
 
 def compute_metrics(eval_pred):
@@ -352,6 +352,7 @@ def train():
         global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
         global_weight_preditor.set_do_pre_prediction(do_cr)
         global_weight_preditor.set_sparsity_threshold(data_args.threshold_path)
+        
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         model_args.model_name_or_path,
         cache_dir=training_args.cache_dir,
@@ -450,7 +451,13 @@ def train():
         trainer = KDTrainer(model=model, tokenizer=tokenizer, teacher_model=teacher_model, loss_type=training_args.kd_loss_type, mean_prob=mean_prob, args=training_args, compute_metrics=compute_metrics, **data_module)
     else:
         trainer = Trainer(model=model, tokenizer=tokenizer, args=training_args, compute_metrics=compute_metrics, **data_module)
-    trainer.train()
+    
+    resume_ckpt = get_last_checkpoint(training_args.output_dir)
+    print('resume_ckpt', resume_ckpt)
+    if resume_ckpt is not None:
+        trainer.train(resume_from_checkpoint=resume_ckpt)
+    else:
+        trainer.train()
     # trainer.save_state()
     safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)
 
