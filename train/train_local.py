@@ -269,8 +269,7 @@ def train():
         torch_dtype=torch.bfloat16,
         device_map=None,
     )
-    if training_args.use_lora:
-        model = prepare_model_for_kbit_training(model)
+    model = prepare_model_for_kbit_training(model)
     # prepare sparse
     prepare_sparse_hook(model)
     global_weight_preditor = model.predictor
@@ -390,15 +389,7 @@ def train():
     else:
         trainer = Trainer(model=model, tokenizer=tokenizer, args=training_args, compute_metrics=compute_metrics, **data_module)
 
-    # for name, param in model.named_parameters():
-    #     if param.requires_grad:
-    #         print(name, "requires grad")
-    #     else :
-    #         print(name, "None requires grad")
-    # for param in model.parameters():
-    #     param.requires_grad = True
     resume_ckpt = get_last_checkpoint(training_args.output_dir)
-    print('resume_ckpt', resume_ckpt)
     trainer.train(resume_from_checkpoint=resume_ckpt)
 
     safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)

@@ -55,5 +55,6 @@ python test_task.py \
     --do_cr=${DO_CR} \
     --file_path=${THRESHOLD_PATH} \
     --sparse_strategy=${SPARSE_STRATEGY} \
+    --batch_size=32 \
     --test_all=${TEST_ALL}
 cd ..

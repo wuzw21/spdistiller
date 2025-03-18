@@ -7,10 +7,6 @@ MODEL=/data/wzw/models/${MODEL_NAME}
 
 echo "MODEL path set to: $MODEL"
 
-export ENABLE_PREDICTOR=1
-export ENABLE_SPARSE_INFER=0
-export ENABLE_TENSOR_SAVER=0
-
 # unused parameters
 export HF_HOME=${HOME}/Downloads/huggingface
 export HF_DOWNLOAD_DATASET_HOME=${HF_HOME}/datasets
@@ -46,10 +42,11 @@ python test_task.py \
     --seed=42 \
     --task=${TEST_TASK} \
     --sparse=${ATTN_SP} \
-    --limit=5 \
-    --num_shot=0 \
+    --limit=10 \
+    --num_shot=5 \
     --do_cr=${DO_CR} \
     --file_path=${THRESHOLD_PATH} \
     --sparse_strategy=${SPARSE_STRATEGY} \
+    --batch_size 1\
     --test_all=${TEST_ALL}
 cd ..

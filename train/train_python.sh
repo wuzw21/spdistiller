@@ -72,7 +72,8 @@ python train.py \
     --max_train_samples 999999 \
     --max_memory ${MAX_MEMORY} \
     --evaluation_strategy "steps" \
-    --eval_steps 2000
+    --eval_steps 2000 \
+    --use_lora True
 
 cd ..
 

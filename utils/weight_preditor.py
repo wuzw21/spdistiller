@@ -96,29 +96,16 @@ class WeightPredictor(object):
         print('sparsity_strategy : ', self.sparsity_strategy)
          
     def score_to_mask(self, x, sp, thres=0.0, ilayer=-1):
-            # Dynamic TOP-K
-        b = thres
-        if len(x.shape) == 2:
-            thres = x.sort(dim=-1).values[:, int(x.shape[-1] * sp)].view(x.shape[0], 1)
-        elif len(x.shape) == 3:
-            thres = x.sort(dim=-1).values[:, :, int(x.shape[-1] * sp)].view(x.shape[0], x.shape[1], 1)
-        else:
-            raise ValueError("Length of x shape must be 2 or 3")
-        a = thres
-
         # choose threshold
         if self.sparsity_strategy == 'Dynamic':
-            thres = a
-        elif self.sparsity_strategy == 'Static':
-            thres = b
-        elif self.sparsity_strategy == 'Mixmin':
-            b_tensor = torch.tensor(b, device=a.device, dtype=a.dtype)
-            thres = torch.minimum(a, b_tensor)
-        elif self.sparsity_strategy == 'Mixmax':
-            b_tensor = torch.tensor(b, device=a.device, dtype=a.dtype)
-            thres = torch.maximum(a, b_tensor)
+            if len(x.shape) == 2:
+                thres = x.sort(dim=-1).values[:, int(x.shape[-1] * sp)].view(x.shape[0], 1)
+            elif len(x.shape) == 3:
+                thres = x.sort(dim=-1).values[:, :, int(x.shape[-1] * sp)].view(x.shape[0], x.shape[1], 1)
+            else:
+                raise ValueError("Length of x shape must be 2 or 3")
         else:
-            thres = b
+            pass
 
         # all activation in layer 0
         r = os.environ.get('ACTIVATE_LAYER' , '0') 

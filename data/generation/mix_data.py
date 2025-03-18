@@ -27,6 +27,9 @@ def mix_json_files(output_path, json_paths):
     random.shuffle(all_outputs)
 
     # 将混合后的数据写入到输出文件中
+    print('finish', output_path)
+    directory = os.path.dirname(output_path)
+    os.makedirs(directory, exist_ok=True)
     with open(output_path, 'w') as f:
         for item in all_outputs:
             f.write(json.dumps(item) + '\n')

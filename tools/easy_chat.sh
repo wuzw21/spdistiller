@@ -33,7 +33,7 @@ export TEMPERATURE=0.2
 
 cd train
 
-bash train.sh \
+bash test_chat.sh \
     ${DATA_DIR}/datasets/${MODEL_NAME}/mix_wikitext_alpaca_c4_15000.json \
     ${OUTPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64/ \
     ${OUTPUT_DIR}/logs/${MODEL_NAME}/int4-g64/ \

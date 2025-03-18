@@ -61,11 +61,15 @@ def eval(
     from lm_eval.models.huggingface import HFLM
     task_manager = TaskManager()
     task_names = task_manager.match_tasks(task_list)
-    lm_eval_model = HFLM(model, tokenizer=tokenizer, batch_size="auto", max_length=2048)
+    # batch_size = get_auto_batch_size(model, max_batch_size=16)
+    print('batch_size', batch_size)
+    lm_eval_model = HFLM(model, tokenizer=tokenizer, batch_size=batch_size, max_length=4096)
     results = evaluator.simple_evaluate(
         model=lm_eval_model,
         tasks=task_names,
         num_fewshot=num_fewshot,
+        batch_size=batch_size,
+        device="balanced",
         use_cache=None,
         limit=limit,
         check_integrity=False,
