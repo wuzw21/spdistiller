@@ -23,9 +23,6 @@ export WANDB_DISABLED=true
 export MODEL_PATH=$5
 export MODEL_NAME=$6
 
-export ENABLE_PREDICTOR=1
-export ENABLE_SPARSE_INFER=1
-export ENABLE_TENSOR_SAVER=0
 
 # No ssh
 #--hostfile=hostfile_remote --no_ssh --node_rank=0

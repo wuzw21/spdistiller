@@ -29,9 +29,6 @@ echo "NUM_GPUS: $NUM_GPUS"
 echo $MODEL_NAME
 echo $MODEL_PATH
 
-export ENABLE_PREDICTOR=0
-export ENABLE_SPARSE_INFER=0
-export ENABLE_TENSOR_SAVER=0
 cd data/generation
 
 JSON_PATH1="${AMLT_OUTPUT_DIR}/datasets/${MODEL_NAME}/wikitext_T0.2_N1024_S42_5000.json"

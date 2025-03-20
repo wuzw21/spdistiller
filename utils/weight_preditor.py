@@ -43,6 +43,8 @@ class WeightPredictor(object):
     def set_sparse_infer(self, s=1) :
         self.sparse_infer = s
     def is_sparse_infer(self) -> bool:
+        if os.environ.get('ENABLE_SPARSE_INFER','1') == '0' :
+            return False
         return self.sparse_infer
     def reset(self) :
         print('Init Reset')

@@ -36,17 +36,18 @@ echo "Model: ${MODEL}"
 
 cd train
 
+
 #--limit=500
 python test_task.py \
     --model=${MODEL} \
     --seed=42 \
     --task=${TEST_TASK} \
     --sparse=${ATTN_SP} \
-    --limit=10 \
+    --limit=100 \
     --num_shot=5 \
     --do_cr=${DO_CR} \
     --file_path=${THRESHOLD_PATH} \
     --sparse_strategy=${SPARSE_STRATEGY} \
-    --batch_size 1\
+    --batch_size 1 \
     --test_all=${TEST_ALL}
 cd ..

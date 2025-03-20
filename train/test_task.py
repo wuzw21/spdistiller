@@ -23,14 +23,14 @@ def parse_args():
     parser.add_argument('--model', type=str, help='LLaMA model.')
     parser.add_argument('--seed', type=int, default=0, help='Seed for sampling the calibration data.')
     parser.add_argument("--task", nargs='+', help="List of tasks to evaluate")
-    parser.add_argument('--batch_size', type=int, default=1, help='Number of test samples.')
     parser.add_argument('--limit', type=int, default=-1, help='Number of test samples.')
     parser.add_argument('--num_shot',type=int, default=0,help='NUM_SHOT')
     parser.add_argument('--sparse', type=float, default=0,help='sparse')
     parser.add_argument('--do_cr',type=int, default=0,help='cross_layer')
     parser.add_argument('--file_path',type=str, default=0,help='file_path')
     parser.add_argument('--sparse_strategy',type=str, help='sparse strategy')
-    parser.add_argument('--test_all',type=bool,default=0)
+    parser.add_argument('--batch_size', type=int, default=1, help='Number of test samples.')
+    parser.add_argument('--test_all',type=int,default=0)
     args = parser.parse_args()
     return args
 
@@ -61,17 +61,38 @@ def eval(
     from lm_eval.models.huggingface import HFLM
     task_manager = TaskManager()
     task_names = task_manager.match_tasks(task_list)
-    lm_eval_model = HFLM(model, tokenizer=tokenizer, batch_size="auto", max_length=2048)
-    results = evaluator.simple_evaluate(
-        model=lm_eval_model,
-        tasks=task_names,
-        num_fewshot=num_fewshot,
-        use_cache=None,
-        limit=limit,
-        check_integrity=False,
-    )
+    task_num_fewshot = {
+        "agieval": 0,
+        "mmlu": 5,
+        # 其他任务的 num_fewshot 设置
+    }
+    lm_eval_model = HFLM(model, tokenizer=tokenizer, batch_size=batch_size, max_length=2048)
+    results = []
+    for task_name in task_names:
+        num_fewshot = task_num_fewshot.get(task_name, num_fewshot)
 
-    return make_table(results)
+        # 评估当前任务
+        try:
+        # Evaluate the current task
+            task_result = evaluator.simple_evaluate(
+                model=lm_eval_model,
+                tasks=[task_name],
+                num_fewshot=num_fewshot,
+                use_cache=None,
+                limit=limit,
+                check_integrity=False,
+                log_samples=True,
+            )
+        except Exception as e:
+            print(f"Task '{task_name}' testing failed: {e}")
+
+        else :
+            print('finish_task', task_name)
+            print(make_table(task_result))
+            results.append(make_table(task_result))
+
+    # 生成结果表格
+    return results
 
 def process_compressed_pred(compressed_pred, output_file, layer_idx, weight_idx):
     """
@@ -165,7 +186,8 @@ def eval_for_sp_config(model_path, model, tokenizer, task_list, num_shot, batch_
         global_weight_preditor.set_do_pre_prediction(do_cr)
     global_weight_preditor.set_sparsity_threshold(file_path)
     global_weight_preditor.set_sparsity_strategy(strategy)
-    
+
+
     results = eval(
         model, tokenizer, task_list,
         num_shot, batch_size, limit
@@ -173,9 +195,11 @@ def eval_for_sp_config(model_path, model, tokenizer, task_list, num_shot, batch_
     print('='*40)
     print("sp_config: ", sp_config, "num_shot: ", num_shot)
     print("results")
-    print(results)
-    debug_test(model)
+    for result in results :
+        print(result)
     print('='*40)
+    debug_test(model)
+    
 
 
 def main():
@@ -204,30 +228,36 @@ def main():
     
     print(f"task_name: {args.task}")
     
-    limit = None if ( args.limit is None or args.limit <= 0 ) else args.limit
+    limit = None if ( args.limit is None or args.limit < 0 ) else args.limit
     
     batch_size = args.batch_size
     
     task_list = [
-        *args.task,     # 主任务（可由外部指定）
-        "wikitext",    # 语言建模
-        "gsm8k",       # 数学推理（数学题目）
-        "bbh",         # BBH：涵盖广泛领域的挑战任务
-        "agi_eval",    # AGI Eval：评估模型的通用智能能力
-        "arc_easy", 
-        "arc_challenge"
-        # "lambada",     # 长上下文语言理解与生成
-        # "hellaswag",   # 常识推理与情景理解
-        # "mmlu",        # 多学科考试题（综合知识评估）
-        # "piqa",        # 物理常识推理
-        # "winogrande"   # 指代消解与语义理解
+        *args.task,
+        "wikitext",
+        "agieval",      # 确认是否应为 "agi_eval" 或其他名称
+        "arc_easy",
+        "arc_challenge",
+        "piqa",
+        # "gsm8k",
+        
+        # "humaneval",
     ]
-    print(task_list)
+    if os.environ.get('EASY_TEST','0') == '1':
+        task_list = [
+            "wikitext",
+            "piqa",
+            "agieval",      # 确认是否应为 "agi_eval" 或其他名称
+            "arc_easy",
+            "arc_challenge",
+        ]
+    print('task_list',task_list)
     sp_configs = [(args.sparse, args.sparse, 0.00, args.do_cr)]
     if args.test_all:
-        sp_configs = [(0,0,0,0), (0.5,0.5,0,0), (0.6,0.6,0,0)]
+        sp_configs = [(0,0,0,0), (0.5,0.5,0,0), (0.6,0.6,0,0), (args.sparse, args.sparse, 0.00, args.do_cr)]
+        sp_configs = list(set(sp_configs))
         
-    num_shots= [0]
+    num_shots= [3]
     
     print('sp_configs: ',sp_configs)
     for sp_config in sp_configs:

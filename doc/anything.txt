@@ -15,7 +15,88 @@ ACTIVATE_LAYER :
 BACKWARD_STRATEGY : 
 
 bash tools/run_kd_qat_amlt.sh Mixtral-8x7B-Instruct 0.7 0 Static wiki 1
-bash tools/run_test_task_amlt.sh Mixtral-8x7B-Instruct 0.5 0 Static wiki 1
+bash tools/run_test_task_amlt.sh Meta-Llama-3-8B 0.5 0 Static wiki 0
 export AMLT_DATA_DIR=/mnt/default/gcrbitdistillerdata
 export NCCL_DEBUG=INFO
 export NCCL_IB_DISABLE=1 
+
+
+
+Llama-3-cakld
+(TEST_ALL) 
+0.7 gcrbitdistiller-Meta-Llama-3-8B-sparse_0.7-cr_0_wac8k-cakld-4bit-80G4A100 : projects/wzw-gcrbitdistillerq4/amlt-results/7258901328.44367-290c702f-5b09-4e96-ae5f-bc54391188bb
+
+0.6 gcrbitdistiller-Meta-Llama-3-8B-sparse_0.6-cr_0_wac8k-cakld-4bit-80G4A100: projects/wzw-gcrbitdistillerq4/amlt-results/7258976559.08562-6f8c9bcd-2e63-4bc6-84c3-839c23ee32fa
+0.5 gcrbitdistiller-Meta-Llama-3-8B-sparse_0.5-cr_0_wac8k-cakld-4bit-80G4A100: projects/wzw-gcrbitdistillerq4/amlt-results/7258976620.02019-49367bd4-424f-49bd-89e8-cebf80488af6
+
+LLama-3-Ste
+(TEST_ALL)
+0.8 gcrbitdistiller-Meta-Llama-3-8B-sparse_0.8-cr_0_wac8k-static-STE: projects/wzw-gcrbitdistillerq4/amlt-results/7260183513.51709-a9f15020-08d9-4430-8043-efd351b3a4c6
+0.7 gcrbitdistiller-Meta-Llama-3-8B-sparse_0.7-cr_0_wac8k-static-STE: projects/wzw-gcrbitdistillerq4/amlt-results/7259969968.57103-c6b48a3d-572b-4c88-9c45-812c51ffa78d
+0.6 gcrbitdistiller-Meta-Llama-3-8B-sparse_0.6-cr_0_wac8k-static-STE: projects/wzw-gcrbitdistillerq4/amlt-results/7260183546.70913-96d8561c-472d-4552-9391-0a413b1c396f
+0.5 gcrbitdistiller-Meta-Llama-3-8B-sparse_0.5-cr_0_wac8k-static-STE: projects/wzw-gcrbitdistillerq4/amlt-results/7260183682.56628-648b8392-337c-4722-96d7-257108009ec8
+
+Llama-3
+0.6 gcrbitdistiller-Meta-Llama-3-8B-sparse_0.6-cr_0_wac8k
+0.5 gcrbitdistiller-Meta-Llama-3-8B-sparse_0.5-cr_0_wac8k
+
+Llama-2
+checkpoint-280
+gcrbitdistiller-Llama-2-7b-chat-hf-sparse_0.5-cr_0_wac8k-cakld-4bit-40G4A100
+
+gcrbitdistiller-Llama-2-7b-chat-hf-sparse_0-cr_0_wac8k-static-STE
+
+
+results
+|              Tasks              |Version|     Filter     |n-shot|    Metric     |   |Value |   |Stderr|
+|---------------------------------|-------|----------------|-----:|---------------|---|-----:|---|------|
+|agieval                          |N/A    |none            |     3|acc            |↑  |0.3571|±  |0.0100|
+|                                 |       |none            |     3|acc_norm       |↑  |0.3211|±  |0.0106|
+| - agieval_aqua_rat              |      1|none            |     3|acc            |↑  |0.2000|±  |0.0402|
+|                                 |       |none            |     3|acc_norm       |↑  |0.1700|±  |0.0378|
+| - agieval_gaokao_biology        |      1|none            |     3|acc            |↑  |0.3100|±  |0.0465|
+|                                 |       |none            |     3|acc_norm       |↑  |0.3600|±  |0.0482|
+| - agieval_gaokao_chemistry      |      1|none            |     3|acc            |↑  |0.3500|±  |0.0479|
+|                                 |       |none            |     3|acc_norm       |↑  |0.3200|±  |0.0469|
+| - agieval_gaokao_chinese        |      1|none            |     3|acc            |↑  |0.2500|±  |0.0435|
+|                                 |       |none            |     3|acc_norm       |↑  |0.2400|±  |0.0429|
+| - agieval_gaokao_english        |      1|none            |     3|acc            |↑  |0.6400|±  |0.0482|
+|                                 |       |none            |     3|acc_norm       |↑  |0.5300|±  |0.0502|
+| - agieval_gaokao_geography      |      1|none            |     3|acc            |↑  |0.4400|±  |0.0499|
+|                                 |       |none            |     3|acc_norm       |↑  |0.4100|±  |0.0494|
+| - agieval_gaokao_history        |      1|none            |     3|acc            |↑  |0.4500|±  |0.0500|
+|                                 |       |none            |     3|acc_norm       |↑  |0.3000|±  |0.0461|
+| - agieval_gaokao_mathcloze      |      1|none            |     3|acc            |↑  |0.0000|±  |     0|
+| - agieval_gaokao_mathqa         |      1|none            |     3|acc            |↑  |0.3000|±  |0.0461|
+|                                 |       |none            |     3|acc_norm       |↑  |0.2800|±  |0.0451|
+| - agieval_gaokao_physics        |      1|none            |     3|acc            |↑  |0.3400|±  |0.0476|
+|                                 |       |none            |     3|acc_norm       |↑  |0.2600|±  |0.0441|
+| - agieval_jec_qa_ca             |      1|none            |     3|acc            |↑  |0.5100|±  |0.0502|
+|                                 |       |none            |     3|acc_norm       |↑  |0.4400|±  |0.0499|
+| - agieval_jec_qa_kd             |      1|none            |     3|acc            |↑  |0.5200|±  |0.0502|
+|                                 |       |none            |     3|acc_norm       |↑  |0.4500|±  |0.0500|
+| - agieval_logiqa_en             |      1|none            |     3|acc            |↑  |0.2500|±  |0.0435|
+|                                 |       |none            |     3|acc_norm       |↑  |0.2800|±  |0.0451|
+| - agieval_logiqa_zh             |      1|none            |     3|acc            |↑  |0.2900|±  |0.0456|
+|                                 |       |none            |     3|acc_norm       |↑  |0.3800|±  |0.0488|
+| - agieval_lsat_ar               |      1|none            |     3|acc            |↑  |0.1800|±  |0.0386|
+|                                 |       |none            |     3|acc_norm       |↑  |0.2100|±  |0.0409|
+| - agieval_lsat_lr               |      1|none            |     3|acc            |↑  |0.3800|±  |0.0488|
+|                                 |       |none            |     3|acc_norm       |↑  |0.2200|±  |0.0416|
+| - agieval_lsat_rc               |      1|none            |     3|acc            |↑  |0.4700|±  |0.0502|
+|                                 |       |none            |     3|acc_norm       |↑  |0.2700|±  |0.0446|
+| - agieval_math                  |      1|none            |     3|acc            |↑  |0.1300|±  |0.0338|
+| - agieval_sat_en                |      1|none            |     3|acc            |↑  |0.5600|±  |0.0499|
+|                                 |       |none            |     3|acc_norm       |↑  |0.3800|±  |0.0488|
+| - agieval_sat_en_without_passage|      1|none            |     3|acc            |↑  |0.4700|±  |0.0502|
+|                                 |       |none            |     3|acc_norm       |↑  |0.2400|±  |0.0429|
+| - agieval_sat_math              |      1|none            |     3|acc            |↑  |0.4600|±  |0.0501|
+|                                 |       |none            |     3|acc_norm       |↑  |0.3600|±  |0.0482|
+|arc_challenge                    |      1|none            |     3|acc            |↑  |0.5600|±  |0.0499|
+|                                 |       |none            |     3|acc_norm       |↑  |0.5400|±  |0.0501|
+|gsm8k                            |      3|flexible-extract|     3|exact_match    |↑  |0.5300|±  |0.0502|
+|                                 |       |strict-match    |     3|exact_match    |↑  |0.5200|±  |0.0502|
+|wikitext                         |      2|none            |     3|bits_per_byte  |↓  |0.5545|±  |N/A   |
+|                                 |       |none            |     3|byte_perplexity|↓  |1.4687|±  |N/A   |
+|                                 |       |none            |     3|perplexity     |↓  |6.0868|±  |0.2675|
+|                                 |       |none            |     3|word_perplexity|↓  |7.8101|±  |N/A   |

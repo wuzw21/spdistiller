@@ -7,9 +7,6 @@ export MODEL_PATH=${AMLT_DATA_DIR}/models/${MODEL_NAME}
 # export MODEL=/data/wzw/models/Llama/${MODEL_NAME}
 
 
-export ENABLE_PREDICTOR=1
-export ENABLE_SPARSE_INFER=0
-export ENABLE_TENSOR_SAVER=0
 
 export HF_HOME=${HOME}/Downloads/huggingface
 export HF_DOWNLOAD_DATASET_HOME=${HF_HOME}/datasets

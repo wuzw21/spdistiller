@@ -6,10 +6,6 @@ export MODEL=${MODEL_DIR}/${MODEL_NAME}
 export TEST_TASK=wiki
 export CUDA_VISIBLE_DEVICES=0
 
-export ENABLE_PREDICTOR=1
-export ENABLE_SPARSE_INFER=0
-export ENABLE_TENSOR_SAVER=0
-
 export ATTN_SP=0.7
 export MLP_SP=0.7
 export W_P=0.0

@@ -59,10 +59,11 @@ jobs:
     env:
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
 
-- name: gcr_test_task
+- name: gcr_bd_test_task
   sku: 192G1-MI300X
   command:
   - bash tools/run_test_task_amlt.sh $EXTRA_ARGS
+  # - sleep infinity
   mpi: False
   process_count_per_node: 0
   identity: managed

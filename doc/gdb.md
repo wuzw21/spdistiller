@@ -21,10 +21,16 @@ export LLAMA_LOADING_THREAD_CPU_CORE_ID=0
 
 export LLAMA_LOAD_SPARSE_TENSOR=1
 export LLAMA_USE_OUT_DIM_INDEX_CACHE=1
+export LD_LIBRARY_PATH=/data/local/tmp/elastic-infer:$LD_LIBRARY_PATH
+
+
+Llama-2-7b-chat-hf-t-Q4_0
+Meta-Llama-3-8B-Instruct-t-Q4_0
 
 LD_LIBRARY_PATH=/data/local/tmp/elastic-infer ./gdbserver :5039 ./mymain-tg-aarch64 -ngl 999 -m /data/local/tmp/elastic-infer/Llama-2-7b-chat-hf-t-Q4_0.gguf -n 4 -p \"Once upon a\" --temp -1.0 --attn-sp 0.50 --ffn-sp 0.00 -b 1
-LD_LIBRARY_PATH=/data/local/tmp/elastic-infer ./mymain-t-aarch64 -ngl 999 -m /data/local/tmp/elastic-infer/Llama-2-7b-chat-hf-t-Q4_0.gguf -n 10 -p "Once upon a" --temp -1.0 --attn-sp 0.50 --ffn-sp 0.50 -b 1 -t 4
-LD_LIBRARY_PATH=/data/local/tmp/elastic-infer ./mymain-t-aarch64 -ngl 999 -m /data/local/tmp/elastic-infer/Meta-Llama-3-8B-Instruct-t-Q4_0.gguf -n 10 -p "Once upon a" --temp -1.0 --attn-sp 0.50 --ffn-sp 0.50 -b 1 -t 4
+./mymain-nt-aarch64 -ngl 999 -m /data/local/tmp/elastic-infer/Llama-2-7b-chat-hf-nt-Q4_0.gguf -n 10 -p "Once upon a" --temp -1.0 --attn-sp 0.0 --ffn-sp 0.0 -b 1 -t 4
+
+./mymain-t-aarch64 -ngl 999 -m /data/local/tmp/elastic-infer/Llama-2-7b-chat-hf-t-Q4_0.gguf -n 10 -p "Once upon a" --temp -1.0 --attn-sp 0.50 --ffn-sp 0.50 -b 1 -t 4
 
 注：gdbserver程序在/data/local/tmp/v-fuchengjia下面有，直接copy即可
 

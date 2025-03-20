@@ -37,10 +37,10 @@ def process_file(file_path):
 def traverse_and_process(directory):
     for root, _, files in os.walk(directory):
         for file in files:
-            if file.endswith('.json'):
+            if file.endswith('.txt'):
                 file_path = os.path.join(root, file)
                 process_file(file_path)
 
 # 设置要处理的目录路径
-directory_path = '/home/donglinbai/Projects/wzw/BitDistiller-Q4_0/threshold/Meta-Llama-3-8B'
+directory_path = '/home/donglinbai/Projects/wzw/BitDistiller-Q4_0/threshold/Llama-2-7b-chat-hf'
 traverse_and_process(directory_path)
