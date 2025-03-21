@@ -1,7 +1,6 @@
 **/__pycache__/
 
 data/datasets
-data/threshold
 quantization/clip_cache/
 
 test/gsm8k/preds/
