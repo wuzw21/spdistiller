@@ -179,7 +179,7 @@ def main(rank, args):
             tokenizer=tokenizer,
             model=model,
         )
-    tokenizer.model_max_length = 1024
+    tokenizer.model_max_length = args.max_new_tokens
 
     torch.cuda.set_device(rank)
     model.to(torch.cuda.current_device())
@@ -210,12 +210,13 @@ def main(rank, args):
         num_return_sequences=return_seq_num,
         top_p=1.0
     )
-
     all_outputs = []
     total_nums = int(len(gen_dataset) / (world_size * batch_size))
     for step, batch in tqdm(enumerate(dataloader), total=total_nums):
+        # print(step,batch)
         input_ids = batch['input_ids'].to(model.device)
         attention_mask = batch['attention_mask'].to(model.device)
+        # print('eos_token_id', tokenizer.eos_token_id)
         with torch.no_grad():
             generation_output = model.module.generate(
                 input_ids=input_ids,
@@ -243,6 +244,8 @@ def main(rank, args):
                 temp.append([inputs_string[idx], outputs_string[return_seq_num*idx+i].replace(inputs_string[idx], '')])
             all_outputs.append(temp)
 
+    dist.barrier()
+
     if rank == 0:
         path = os.path.join(args.out_path, f'{args.dataset_name}_T{args.temperature}_N{args.max_new_tokens}_S{args.seed}_{args.max_sample}.json')
         print('finish', path)
@@ -251,14 +254,13 @@ def main(rank, args):
         with open(path, 'w') as f:
             for item in all_outputs[:len(gen_dataset)]:
                 f.write(json.dumps(item) + '\n')
-    dist.barrier()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parameters')
     parser.add_argument("--base_model", default="", type=str, help="model path")
     parser.add_argument("--dataset_name", default="", type=str, help="name of the datasets")
-    parser.add_argument("--batch_size", type=int, default=0, help="batch size")
+    parser.add_argument("--batch_size", type=int, default=1, help="batch size")
     parser.add_argument("--seed", type=int, default=42, help="seed")
     parser.add_argument("--out_path", default="", type=str, help="output datapath")
     parser.add_argument("--max_sample", type=int, default=None, help="max_sample")
@@ -268,14 +270,7 @@ if __name__ == "__main__":
     parser.add_argument("--threshold_path", type=str, help="path to the threshold file")
     args = parser.parse_args()
 
-    if not os.path.exists(args.out_path):
-        try:
-            os.makedirs(args.out_path)
-            print(f"dir {args.out_path} create successfully")
-        except:
-            pass
-    else:
-        print(f"dir {args.out_path} has existed")
+    os.makedirs(args.out_path,exist_ok=True)
 
     local_rank = int(os.environ["LOCAL_RANK"])
     main(local_rank, args)

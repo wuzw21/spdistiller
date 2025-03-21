@@ -1,28 +1,13 @@
-AMLT_MODE=${AMLT_MODE:-0}
-
-if [ "$AMLT_MODE" -eq 1 ]; then
-    echo "Running in AMLT mode, skipping CUDA environment setup..."
-else
-    echo "Running in normal mode, setting up CUDA environment..."
-    export CUDA_HOME=/usr/local/cuda-12.3
-    export PATH=${CUDA_HOME}/targets/x86_64-linux/lib/stubs:${PATH}
-    # 如有需要，可启用下行，加载 LD_LIBRARY_PATH
-    # export LD_LIBRARY_PATH=${HOME}/Software/miniconda3/envs/py310/lib/python3.10/site-packages/nvidia/curand/lib:${LD_LIBRARY_PATH}
-fi
-
+# !/bin/bash
 export DATA_PATH=$1
 export SAVE_PATH=$2
 export LOGGING_DIR=$3
-export NUM_TRAIN_EPOCHS=$4
+
 export MASTER_ADDR="localhost"
 export MASTER_PORT="1321"
 export GLOO_SOCKET_IFNAME="lo"
 export NCCL_SOCKET_IFNAME="lo"
 export WANDB_DISABLED=true
-
-export MODEL_PATH=$5
-export MODEL_NAME=$6
-
 
 # No ssh
 #--hostfile=hostfile_remote --no_ssh --node_rank=0
@@ -31,16 +16,16 @@ export MODEL_NAME=$6
 # --evaluation_strategy "steps"
 # --eval_steps 4
 # --bits 4 --quant_type Q4_0 --q_group_size 64
-deepspeed --num_nodes=${NUM_NODES} --num_gpus=1 \
-    --hostfile=hostfile_local --no_ssh --node_rank=0 \
+deepspeed --no_ssh --node_rank=0 \
     --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
+    --deepspeed config/zero.json \
     --model_name_or_path ${MODEL_PATH} \
     --data_path ${DATA_PATH} \
     --threshold_path ${THRESHOLD_PATH} \
     --model_max_length 512 \
     --output_dir ${SAVE_PATH} \
     --logging_dir ${LOGGING_DIR} \
-    --num_train_epochs ${NUM_TRAIN_EPOCHS} \
+    --num_train_epochs 5 \
     --bf16 True \
     --seed 42 \
     --per_device_train_batch_size 1 \
@@ -53,14 +38,12 @@ deepspeed --num_nodes=${NUM_NODES} --num_gpus=1 \
     --weight_decay 0. \
     --logging_steps 1 \
     --report_to "none" \
-    --deepspeed config/zero.json \
     --bits 4 \
     --quant_type Q4_0 \
     --q_group_size 64 \
     --train_kd False \
     --kd_loss_type "reverse" \
     --max_train_samples 999999 \
-    --max_memory ${MAX_MEMORY} \
     --evaluation_strategy "steps" \
     --eval_steps  100 \
     --use_lora False

@@ -1,7 +1,7 @@
 **/__pycache__/
 
 data/datasets
-
+data/threshold
 quantization/clip_cache/
 
 test/gsm8k/preds/
@@ -9,8 +9,6 @@ test/humaneval/preds/
 
 train/ckpts/
 train/logs/
-
-data/
 
 inference/quant_cache/
 
@@ -71,3 +69,4 @@ cover/
 
 logs/
 plt/
+doc/

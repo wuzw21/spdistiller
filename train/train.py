@@ -28,7 +28,6 @@ from tqdm import tqdm
 from datasets import load_dataset
 
 from utils.sparse_hook import prepare_sparse_hook, get_sparsity_configs
-
 # 如果需要使用LoRA，则导入PEFT相关模块
 from peft import LoraConfig, get_peft_model,prepare_model_for_kbit_training
 
@@ -89,7 +88,6 @@ class TrainingArguments(transformers.TrainingArguments):
     kd_tmp: int = field(default=1, metadata={"help": "Temperature of KD"})
     kd_loss_type: str = field(default=None, metadata={"help": "Type of loss function when KD-QAT"})
     cakld_steps: int = field(default=10, metadata={"help": "How many steps to calculate the coefficient of CAKLD."})
-    max_memory: str = field(default="80000MB", metadata={"help": "max_memory for cuda device"})
     evaluation_strategy: str = field(
         default="steps",
         metadata={"help": "Evaluation strategy to adopt during training. Options: 'no', 'steps', 'epoch'."}
@@ -168,9 +166,10 @@ class SupervisedDataset(Dataset):
         if split == "train":
             self.sources, self.targets = self.sources[split_num:], self.targets[split_num:]
             print(f"Using {len(self.sources)} samples to train")
-            print("Example Data")
-            print("sources: \n", self.sources[0])
-            print("targets: \n", self.targets[0])
+            # print("Example Data")
+            # print("sources: \n", self.sources[0])
+            # print("targets: \n", self.targets[0])
+            # print('fix_finish')
         elif split == "eval":
             self.sources, self.targets = self.sources[:split_num], self.targets[:split_num]
             print(f"Using {len(self.sources)} samples to evaluation")
@@ -240,29 +239,15 @@ def compute_metrics(eval_pred):
     return {"ppl": ppl}
 
 def train():
-    # try:
-    #     print(f"ROCm是否可用: {torch.cuda.is_available()}")
-    #     print(f"设备数量: {torch.cuda.device_count()}")
-    #     print(f"当前设备: {torch.cuda.current_device()}")
-    #     print(f"设备名称: {torch.cuda.get_device_name(0)}")
-    #     print(torch.__version__)
-    #     print(torch.cuda.is_available())
-    #     print(torch.version.hip)
-    # except KeyError as e:
-    #     pass
-
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
     random.seed(training_args.seed)
     n_gpus = torch.cuda.device_count()
-    max_memory = training_args.max_memory
-    max_memory = {i: max_memory for i in range(n_gpus)}
     device_map = "auto"
     if os.environ.get('LOCAL_RANK') is not None:
         local_rank = int(os.environ.get('LOCAL_RANK', '0'))
         device_map = {'': local_rank}
-        max_memory = {'': max_memory[local_rank]}
-    print('max_memory:', max_memory, "device_map", device_map)
+    print("device_map", device_map)
     print(f"loading {model_args.model_name_or_path} model")
     model = transformers.AutoModelForCausalLM.from_pretrained(
         model_args.model_name_or_path,
@@ -334,13 +319,14 @@ def train():
     # load teacher model if KD training is enabled (assume LoRA and KD are mutually exclusive)
     if training_args.train_kd:
         print("loading Teacher Model...")
+        # TODO: teacher model for loading?
         teacher_model = transformers.AutoModelForCausalLM.from_pretrained(
             model_args.model_name_or_path,
             load_in_4bit=False,
             load_in_8bit=False,
             torch_dtype=torch.bfloat16,
             device_map=device_map,
-            max_memory=max_memory,
+            # max_memory=max_memory,
         )
         teacher_model.eval()
         teacher_model.cuda()

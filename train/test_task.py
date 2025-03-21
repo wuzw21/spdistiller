@@ -7,14 +7,14 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 from torch.autograd import Function
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoModelForCausalLM
 from accelerate import infer_auto_device_map, dispatch_model
 import sys
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 print(project_root)
 from utils.sparse_hook import prepare_sparse_hook
-from utils.models import get_llm,get_auto_batch_size
+from utils.models import get_llm
 from quantization.qlinear import quant_and_dequant_model_q4_0
 
 
@@ -27,10 +27,11 @@ def parse_args():
     parser.add_argument('--num_shot',type=int, default=0,help='NUM_SHOT')
     parser.add_argument('--sparse', type=float, default=0,help='sparse')
     parser.add_argument('--do_cr',type=int, default=0,help='cross_layer')
-    parser.add_argument('--file_path',type=str, default=0,help='file_path')
+    parser.add_argument('--threshold_path',type=str, default=0,help='threshold_path')
     parser.add_argument('--sparse_strategy',type=str, help='sparse strategy')
     parser.add_argument('--batch_size', type=int, default=1, help='Number of test samples.')
     parser.add_argument('--test_all',type=int,default=0)
+    parser.add_argument('--quant',type=int,default=0)
     args = parser.parse_args()
     return args
 
@@ -48,7 +49,6 @@ def download_dataset(task_name):
 
 def eval(
     model,
-    tokenizer,
     task_list=["boolq", "rte", "hellaswag", "winogrande", "arc_challenge", "arc_easy", "openbookqa"],
     num_fewshot=0,
     batch_size=1,
@@ -66,7 +66,7 @@ def eval(
         "mmlu": 5,
         # 其他任务的 num_fewshot 设置
     }
-    lm_eval_model = HFLM(model, tokenizer=tokenizer, batch_size=batch_size, max_length=2048)
+    lm_eval_model = HFLM(model, batch_size=batch_size, max_length=2048)
     results = []
     for task_name in task_names:
         num_fewshot = task_num_fewshot.get(task_name, num_fewshot)
@@ -175,25 +175,23 @@ def debug_test(model):
         #     for iweight in range(7) :
         #         process_compressed_pred(global_weight_preditor.wmetrics[ilayer][iweight], output_file, ilayer, iweight)
 
-def eval_for_sp_config(model_path, model, tokenizer, task_list, num_shot, batch_size, limit, sp_config, file_path, strategy):
-    print("sp_config: ", sp_config, "num_shot: ", num_shot)
+def eval_for_sp_config(model_path, model, task_list, num_shot, batch_size, limit, sp_config, threshold_path, strategy):
+    print("begin : sp_config: ", sp_config, "num_shot: ", num_shot)
+
+    # set sparsity
     global_weight_preditor = model.predictor
     global_weight_preditor.reset()
-    # global_weight_preditor = None
-    if global_weight_preditor is not None:
-        attn_sp, mlp_sp, w_p, do_cr = sp_config
-        global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
-        global_weight_preditor.set_do_pre_prediction(do_cr)
-    global_weight_preditor.set_sparsity_threshold(file_path)
+    attn_sp, mlp_sp, w_p, do_cr = sp_config
+    global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
+    global_weight_preditor.set_do_pre_prediction(do_cr)
+    global_weight_preditor.set_sparsity_threshold(threshold_path)
     global_weight_preditor.set_sparsity_strategy(strategy)
 
-
-    results = eval(
-        model, tokenizer, task_list,
-        num_shot, batch_size, limit
-    )
+    # eval
+    results = eval(model, task_list, num_shot, batch_size, limit)
+    
     print('='*40)
-    print("sp_config: ", sp_config, "num_shot: ", num_shot)
+    print("end : sp_config: ", sp_config, "num_shot: ", num_shot)
     print("results")
     for result in results :
         print(result)
@@ -205,9 +203,6 @@ def eval_for_sp_config(model_path, model, tokenizer, task_list, num_shot, batch_
 def main():
     args = parse_args()
 
-    #download_dataset(args.task)
-    #return
-
     # Setting seeds for reproducibility
     np.random.seed(args.seed)
     torch.random.manual_seed(args.seed)
@@ -216,9 +211,10 @@ def main():
     model = get_llm(args.model)
     prepare_sparse_hook(model)
     model.eval()
-    tokenizer = AutoTokenizer.from_pretrained(args.model, use_fast=False)
 
-    quant_and_dequant_model_q4_0(model)
+    # TODO: add quant qrgs
+    if args.quant:
+        quant_and_dequant_model_q4_0(model)
 
     print("task: eval")
 
@@ -235,22 +231,18 @@ def main():
     task_list = [
         *args.task,
         "wikitext",
-        "agieval",      # 确认是否应为 "agi_eval" 或其他名称
+        "agieval",  
         "arc_easy",
         "arc_challenge",
         "piqa",
-        # "gsm8k",
-        
-        # "humaneval",
+        "gsm8k",
     ]
+    # easy debug
     if os.environ.get('EASY_TEST','0') == '1':
         task_list = [
             "wikitext",
-            "piqa",
-            "agieval",      # 确认是否应为 "agi_eval" 或其他名称
-            "arc_easy",
-            "arc_challenge",
         ]
+        
     print('task_list',task_list)
     sp_configs = [(args.sparse, args.sparse, 0.00, args.do_cr)]
     if args.test_all:
@@ -262,13 +254,14 @@ def main():
     print('sp_configs: ',sp_configs)
     for sp_config in sp_configs:
         for num_shot in num_shots: 
-            if args.test_all and args.sparse_strategy == 'Static':
+            if args.test_all:
+                data_dir = os.environ.get('DATA_DIR')
                 model_name = os.environ.get('MODEL_NAME')
                 sparse = sp_config[0]
-                filepath = f'../threshold/{model_name}/sparse-{sparse}.json'
+                threshold_path = f'{data_dir}/data/threshold/{model_name}/sparse-{sparse}.json'
             else :
-                filepath = args.file_path
-            eval_for_sp_config(args.model, model, tokenizer, task_list, num_shot, batch_size, limit, sp_config, filepath, args.sparse_strategy)
+                threshold_path = args.threshold_path
+            eval_for_sp_config(args.model, model, task_list, num_shot, batch_size, limit, sp_config, threshold_path, args.sparse_strategy)
 
 
 if __name__ == "__main__":

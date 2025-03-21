@@ -10,18 +10,11 @@ prepareSSHKey
 
 pip uninstall -y onnxruntime_training
 
-pip install -r requirement.txt
+pip install -r requirements.txt
 
 mkdir -p 3rdparty
 
 cd 3rdparty
-
-installTransformers() {
-    git clone -b wzw https://github.com/FuchengJia1996/transformers-pred.git "transformers"
-    cd transformers
-    pip install -e .
-    cd ..
-}
 
 installLMEval() {
     git clone https://github.com/FuchengJia1996/lm-evaluation-harness-v0.4.3.git "lm-evaluation-harness"
@@ -33,8 +26,6 @@ installLMEval() {
 prepare() {
     wandb offline
 }
-
-installTransformers
 
 installLMEval
 

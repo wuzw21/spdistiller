@@ -74,7 +74,7 @@ def get_auto_batch_size(model, max_batch_size, min_batch_size=1):
     batch_size = max_batch_size
     while batch_size >= min_batch_size:
         try:
-            # 尝试进行一次前向传播
+            # f
             dummy_input = torch.ones((batch_size, model.config.max_position_embeddings), dtype=torch.long).to(model.device)
             with torch.no_grad():
                 model(dummy_input)

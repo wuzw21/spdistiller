@@ -1,8 +1,8 @@
 /.git
 /amlt
 /data/datasets
-/data/predictors
 /logs
 /quantization/clip_cache
 /test/general
 /plt
+/doc

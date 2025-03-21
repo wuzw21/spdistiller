@@ -31,7 +31,6 @@ jobs:
   submit_args:
     env:
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
-      SKU: 40G4-A100
 
 - name: gcrbitdistiller
   sku: 80G4-A100
@@ -48,18 +47,16 @@ jobs:
     env:
       NCCL_DEBUG: info
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
-      SKU: 80G4-A100
 
 - name: gcr_bd_3_test_task
   sku: 80G1-A100
   command:
-  - bash tools/run_test_task_amlt.sh $EXTRA_ARGS
+  - bash tools/test_task_amlt.sh $EXTRA_ARGS
   mpi: False
   process_count_per_node: 0
   identity: managed
   submit_args:
     env:
-      SKU: 80G1-A100
       NCCL_DEBUG: info
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
 - name: gcrbitdistiller_test_all_task
@@ -71,7 +68,6 @@ jobs:
   identity: managed
   submit_args:
     env:
-      SKU: 40G4-A100
       NCCL_DEBUG: info
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
 - name: gcr_generate_threshold
@@ -83,6 +79,5 @@ jobs:
   identity: managed
   submit_args:
     env:
-      SKU: 80G4-A100
       NCCL_DEBUG: info
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai

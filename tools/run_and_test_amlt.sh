@@ -1,5 +1,4 @@
 #!/bin/bash
-export AMLT_MODE=1
 
 sparse_values=(0.6)
 # sparse_values=(0.7)

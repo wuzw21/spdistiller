@@ -43,12 +43,11 @@ jobs:
   submit_args:
     env:
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
-      SKU: 192G8-MI300X-IB-xGMI
 
 - name: gcrbitdistiller_test_task
   sku: 192G8-MI300X-IB-xGMI
   command:
-  - bash tools/run_test_task_amlt.sh $EXTRA_ARGS
+  - bash tools/test_task_amlt.sh $EXTRA_ARGS
   mpi: False
   process_count_per_node: 0
   submit_args:
@@ -62,13 +61,12 @@ jobs:
 - name: gcr_bd_test_task
   sku: 192G1-MI300X
   command:
-  - bash tools/run_test_task_amlt.sh $EXTRA_ARGS
+  - bash tools/test_task_amlt.sh $EXTRA_ARGS
   # - sleep infinity
   mpi: False
   process_count_per_node: 0
   identity: managed
   submit_args:
     env:
-      SKU: 192G1-MI300X
       NCCL_DEBUG: info
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai

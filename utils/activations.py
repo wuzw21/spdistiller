@@ -21,29 +21,27 @@ class ActivationModule:
         self.activations = [[[] for id in range(num_weights)] for _ in range(num_layers)]
         self.histograms= [[{} for id in range(num_weights)] for _ in range(num_layers)]
         self.file_path = file_path
-        
+
+    # TODO: optimize this function
     def fd_th(self, weight, sp) :
-        tensor = weight.flatten().cpu().numpy()  # 将张量转换为 NumPy 数组
-        threshold = np.percentile(tensor, q=sp*100)  # 计算分位数
+        tensor = weight.flatten().cpu().numpy()  
+        threshold = np.percentile(tensor, q=sp*100)
         return threshold.item()        
 
     def fd_th_by_histogram(self, histogram, sp) :
         bin_centers = histogram["bin_centers"]
         counts = histogram["histogram"]
 
-        # 取绝对值
+        
         abs_bin_centers = torch.abs(bin_centers)
 
-        # 重新分配直方图的计数
         unique_bins, inverse_indices = torch.unique(abs_bin_centers, return_inverse=True)
         new_counts = torch.zeros_like(unique_bins)
         new_counts.scatter_add_(0, inverse_indices, counts)
 
-        # 重新计算累积分布
         cumulative_counts = torch.cumsum(new_counts, dim=0)
         total_count = cumulative_counts[-1]
 
-        # 找到满足分位数的累积计数
         target_count = sp * total_count
         idx = torch.searchsorted(cumulative_counts, target_count)
 
@@ -83,7 +81,7 @@ class ActivationModule:
     def visualize_histogram(self, layer_idx, weight_idx):
         histograms_path = os.path.join(self.file_path, f"layer_{layer_idx}", f"weight_{weight_idx}", "histograms.pt")
 
-        # 加载直方图数据
+        # load histogram
         histogram_data = torch.load(histograms_path, map_location='cpu', weights_only=True)
         histogram, bin_edges, bin_centers = histogram_data['histogram'], histogram_data['bin_edges'], histogram_data['bin_centers']
 
@@ -93,7 +91,7 @@ class ActivationModule:
         plt.ylabel("Frequency")
         plt.title(f"Histogram for Layer {layer_idx}, Weight {weight_idx}")
 
-        # 先保存再显示
+        # save histogram
         plt.savefig(os.path.join(self.file_path, "histograms_png", f"layer_{layer_idx}-weight_{weight_idx}-histograms.png"))
         plt.show()
         plt.close() 
@@ -118,17 +116,17 @@ class ActivationModule:
             torch.save({'histogram': histogram, 'bin_edges': bin_edges, 'bin_centers': bin_centers}, histograms_path)
 
     def clear_layer_weight(self, layer_idx, weight_idx) :
-        print('clear', layer_idx, weight_idx)
+        # print('finish', layer_idx, weight_idx)
         self.activations[layer_idx][weight_idx] = []
         
     def grab_activations(self, x, layer_idx, weight_idx):
         if x.size(1) > 1:  # Check if seq_len > 1
-            print('grab ', layer_idx, weight_idx, x.size())
+            # print('grab ', layer_idx, weight_idx, x.size())
             self.activations[layer_idx][weight_idx].append(x.detach().squeeze(0).cpu().float())
             
             self.save_layer_weight(layer_idx, weight_idx)
             self.clear_layer_weight(layer_idx, weight_idx)
-            # 可视化直方图
+
             if self.visualize_strategy:
                 start_time = time.time()
                 self.visualize_histogram(layer_idx, weight_idx)

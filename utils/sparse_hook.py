@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM,AutoTokenizer
-from .weight_preditor import _init_weight_predictor
+from utils.weight_preditor import _init_weight_predictor
 import re
 import os
 
 def get_sparsity_configs():
-    attn_sp = float(os.environ.get("ATTN_SP",'0'))
-    mlp_sp = float(os.environ.get("MLP_SP",'0'))
+    attn_sp = float(os.environ.get("SPARSE",'0'))
+    mlp_sp = float(os.environ.get("SPARSE",'0'))
     w_p = float(os.environ.get("W_P",'0'))
     do_cr = float(os.environ.get("DO_CR",'0'))
     return attn_sp, mlp_sp, w_p, do_cr
@@ -27,7 +27,7 @@ def get_layer_id_from_prefix(prefix) -> int:
 
 def traverse_and_register_hooks(model):
     if not hasattr(model, 'predictor'):
-        print('None sparse predictor, new predictor')
+        # print('None sparse predictor, new predictor')
         model.predictor = _init_weight_predictor()
         
     weight_map = []   # (layer_id, weight_name, weight_id)
@@ -71,12 +71,12 @@ def traverse_and_register_hooks(model):
     return weight_map
 
 def prepare_sparse_hook(model) :
-    print(model)
+    # print(model)
     print('begin model sparse hook setting...')
     weight_map = traverse_and_register_hooks(model)
-    print('finish model sparse hook setting...')
+    # print('finish model sparse hook setting...')
     filtered = sorted([t for t in weight_map if t[0] == 0], key=lambda t: t[2])
-    print("Filtered elements weight-name / weight-id")
+    print("Filtered model elements weight-name / weight-id")
     for elem in filtered:
         print('weight_id', elem[2], 'weight_name: ', elem[1])
     #   print(weight_map)
@@ -95,6 +95,7 @@ def main() :
             device_map="auto",
             trust_remote_code=True
     )
+    model.to('cuda')
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
 
     prepare_sparse_hook(model)

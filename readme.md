@@ -25,7 +25,7 @@
 
 ## 1. Setup
 * python 3.9, pytorch >= 1.13
-* pip install -r requirement.txt 
+* pip install -r requirements.txt 
   
   (You may need to change the version of transformers according to the model config)
 

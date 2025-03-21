@@ -1,6 +1,4 @@
 #!/bin/bash
-export AMLT_MODE=0
-export SKU=24G4-4090
 
 sparse_values=(0.5)
 # cr_values=(0 1)
@@ -15,6 +13,6 @@ for sparse in "${sparse_values[@]}"; do
         
         bash ./tools/run_kd_qat.sh $model_name $sparse $cr
         
-        # bash ./tools/run_test_task.sh $model_name $sparse $cr
+        # bash ./tools/test_task.sh $model_name $sparse $cr
     done
 done

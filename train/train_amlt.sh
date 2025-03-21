@@ -1,15 +1,3 @@
-AMLT_MODE=${AMLT_MODE:-0}
-
-if [ "$AMLT_MODE" -eq 1 ]; then
-    echo "Running in AMLT mode, skipping CUDA environment setup..."
-else
-    echo "Running in normal mode, setting up CUDA environment..."
-    export CUDA_HOME=/usr/local/cuda-12.3
-    export PATH=${CUDA_HOME}/targets/x86_64-linux/lib/stubs:${PATH}
-    # 如有需要，可启用下行，加载 LD_LIBRARY_PATH
-    # export LD_LIBRARY_PATH=${HOME}/Software/miniconda3/envs/py310/lib/python3.10/site-packages/nvidia/curand/lib:${LD_LIBRARY_PATH}
-fi
-
 export DATA_PATH=$1
 export SAVE_PATH=$2
 export LOGGING_DIR=$3
@@ -32,8 +20,6 @@ export WANDB_DISABLED=true
 # --evaluation_strategy "steps"
 # --eval_steps 4
 # --bits 4 --quant_type Q4_0 --q_group_size 64
-quant_type=Q4_0
-bits=4
 # quant_type=ste-n2f3
 # bits=3
 
@@ -62,8 +48,8 @@ deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
     --logging_steps 1 \
     --report_to "none" \
     --deepspeed config/zero.json \
-    --bits ${bits} \
-    --quant_type ${quant_type} \
+    --bits 4 \
+    --quant_type Q4_0 \
     --q_group_size 64 \
     --train_kd True \
     --kd_loss_type "forward" \
@@ -72,15 +58,3 @@ deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
     --evaluation_strategy "steps" \
     --eval_steps 2000 \
     --use_lora False
-
-# cd ..
-
-# cd test/general
-
-# python wiki_ppl.py --model ${SAVE_PATH} --quant_type int --bits ${bits} --group_size 128
-
-# cd ..
-
-# cd ..
-
-# cd train
