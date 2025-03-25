@@ -8,7 +8,7 @@ target:
 environment:
   image: amlt-sing/acpt-2.2.2-py3.10-cuda12.1
   setup:
-    - bash tools/prepare_amlt.sh
+    - bash tools/prepare.sh
 
 code:
   local_dir: /home/donglinbai/Projects/wzw/BitDistiller-Q4_0/
@@ -18,24 +18,10 @@ data:
   remote_dir: gcrbitdistillerdata/
 
 jobs:
-- name: generateteacherdata-Llama-2-7b-wiki
-  sku: 40G4-A100
-  command:
-  - bash tools/generate_teacher_data_amlt.sh
-  mpi: False
-  process_count_per_node: 0
-  submit_args:
-    env:
-      NCCL_DEBUG: info
-  identity: managed
-  submit_args:
-    env:
-      _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
-
 - name: gcrbitdistiller
   sku: 80G4-A100
   command:
-    - bash tools/run_kd_qat_amlt.sh $EXTRA_ARGS
+    - bash tools/amlt_wrapper.sh
     # - sleep infinity
   mpi: False
   process_count_per_node: 0
@@ -43,40 +29,6 @@ jobs:
   sla_tier: Premium
   priority: high  
   execution_mode: basic
-  submit_args:
-    env:
-      NCCL_DEBUG: info
-      _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
-
-- name: gcr_bd_3_test_task
-  sku: 80G1-A100
-  command:
-  - bash tools/test_task_amlt.sh $EXTRA_ARGS
-  mpi: False
-  process_count_per_node: 0
-  identity: managed
-  submit_args:
-    env:
-      NCCL_DEBUG: info
-      _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
-- name: gcrbitdistiller_test_all_task
-  sku: 40G4-A100
-  command:
-  - bash tools/test_all_llama3.sh
-  mpi: False
-  process_count_per_node: 0
-  identity: managed
-  submit_args:
-    env:
-      NCCL_DEBUG: info
-      _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
-- name: gcr_generate_threshold
-  sku: 80G4-A100
-  command:
-  - bash tools/run_generate_threshold_amlt.sh $EXTRA_ARGS
-  mpi: False
-  process_count_per_node: 0
-  identity: managed
   submit_args:
     env:
       NCCL_DEBUG: info

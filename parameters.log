@@ -1,0 +1,10 @@
+------ 参数记录：Mon Mar 24 03:10:39 AM UTC 2025 ------
+job_name=
+task_name=gcrbitdistiller
+model_name=Meta-Llama-3-8B
+sparse=
+cr=
+sparse_strategy=Static
+TEST_TASK=mmlu
+TEST_ALL=0
+------------------------------

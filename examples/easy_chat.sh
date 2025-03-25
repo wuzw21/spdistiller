@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # replace with your path
-export DATA_DIR=$(dirname $(dirname $(realpath "$0")))
+export CURRENT_DIR=$(dirname $(dirname $(realpath "$0")))
 export MODEL_DIR=/data/wzw/models
 export OUTPUT_DIR=/data/wzw/Projects
 
@@ -16,7 +16,7 @@ export TEST_ALL=1
 export EASY_TEST=1
 
 export MODEL_PATH=${MODEL_DIR}/${MODEL_NAME}
-export THRESHOLD_PATH="${DATA_DIR}/data/threshold/${MODEL_NAME}/sparse-${SPARSE}.json"
+export THRESHOLD_PATH="${CURRENT_DIR}/data/threshold/${MODEL_NAME}/sparse-${SPARSE}.json"
 
 echo "Model: ${MODEL_NAME}"
 echo "MODEL path set to: $MODEL_PATH"

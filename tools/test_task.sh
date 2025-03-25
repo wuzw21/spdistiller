@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# export MODEL_NAME=Phi-3.5-mini-instruct
-
 cd train
 
 #--limit=500
