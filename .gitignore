@@ -1,5 +1,7 @@
 **/__pycache__/
 
+.amltconfig
+
 data/datasets
 quantization/clip_cache/
 

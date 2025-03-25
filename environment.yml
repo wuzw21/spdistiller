@@ -7,7 +7,7 @@ dependencies:
   - _openmp_mutex=4.5=2_gnu
   - asttokens=2.4.1=pyhd8ed1ab_0
   - ca-certificates=2024.9.24=h06a4308_0
-  - comm=0.2.2=pyhd8ed1ab_0
+  - comm=0.2.2=pyhd8ed1ab_0w
   - debugpy=1.8.7=py39hf88036b_0
   - decorator=5.1.1=pyhd8ed1ab_0
   - exceptiongroup=1.2.2=pyhd8ed1ab_0
