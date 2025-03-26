@@ -1,0 +1,52 @@
+
+  0%|                                                                                                                                                          | 0/18 [00:00<?, ?it/s]/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/torch/nn/parallel/_functions.py:68: UserWarning: Was asked to gather along dimension 0, but all input tensors were scalars; will instead unsqueeze and return a vector.
+  warnings.warn('Was asked to gather along dimension 0, but all '
+
+
+
+ 33%|████████████████████████████████████████████████▋                                                                                                 | 6/18 [00:10<00:15,  1.33s/it]
+ 33%|████████████████████████████████████████████████▋                                                                                                 | 6/18 [00:10<00:15,  1.33s/it]/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/torch/nn/parallel/_functions.py:68: UserWarning: Was asked to gather along dimension 0, but all input tensors were scalars; will instead unsqueeze and return a vector.
+  warnings.warn('Was asked to gather along dimension 0, but all '
+
+ 50%|█████████████████████████████████████████████████████████████████████████                                                                         | 9/18 [00:13<00:11,  1.31s/it]
+
+
+ 67%|████████████████████████████████████████████████████████████████████████████████████████████████▋                                                | 12/18 [00:17<00:06,  1.16s/it]
+ 67%|████████████████████████████████████████████████████████████████████████████████████████████████▋                                                | 12/18 [00:17<00:06,  1.16s/it]/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/torch/nn/parallel/_functions.py:68: UserWarning: Was asked to gather along dimension 0, but all input tensors were scalars; will instead unsqueeze and return a vector.
+  warnings.warn('Was asked to gather along dimension 0, but all '
+ 78%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                                | 14/18 [00:20<00:05,  1.40s/it]Traceback (most recent call last):
+  File "/data/wzw/wzw/BitDistiller-Q4_0/train/train_single.py", line 147, in <module>
+    train()
+  File "/data/wzw/wzw/BitDistiller-Q4_0/train/train_single.py", line 140, in train
+    trainer.train()
+  File "/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/transformers/trainer.py", line 2241, in train
+    return inner_training_loop(
+  File "/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/transformers/trainer.py", line 2548, in _inner_training_loop
+    tr_loss_step = self.training_step(model, inputs, num_items_in_batch)
+  File "/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/transformers/trainer.py", line 3740, in training_step
+    self.accelerator.backward(loss, **kwargs)
+  File "/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/accelerate/accelerator.py", line 2355, in backward
+    self.scaler.scale(loss).backward(**kwargs)
+  File "/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/torch/_tensor.py", line 492, in backward
+    torch.autograd.backward(
+  File "/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/torch/autograd/__init__.py", line 251, in backward
+    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/data/wzw/wzw/BitDistiller-Q4_0/train/train_single.py", line 147, in <module>
+    train()
+  File "/data/wzw/wzw/BitDistiller-Q4_0/train/train_single.py", line 140, in train
+    trainer.train()
+  File "/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/transformers/trainer.py", line 2241, in train
+    return inner_training_loop(
+  File "/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/transformers/trainer.py", line 2548, in _inner_training_loop
+    tr_loss_step = self.training_step(model, inputs, num_items_in_batch)
+  File "/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/transformers/trainer.py", line 3740, in training_step
+    self.accelerator.backward(loss, **kwargs)
+  File "/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/accelerate/accelerator.py", line 2355, in backward
+    self.scaler.scale(loss).backward(**kwargs)
+  File "/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/torch/_tensor.py", line 492, in backward
+    torch.autograd.backward(
+  File "/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/torch/autograd/__init__.py", line 251, in backward
+    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+KeyboardInterrupt

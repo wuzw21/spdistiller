@@ -4,7 +4,7 @@ source tools/params_temp.env
 
 export CURRENT_DIR=$(dirname $(dirname $(realpath "$0")))
 # change this to your model directory
-export MODEL_DIR=/data/wzw/models/${MODEL_NAME}
+export MODEL_DIR=/data/wzw/models
 export OUTPUT_DIR=/data/wzw/Projects/bitdistiller
 export DATA_DIR=$CURRENT_DIR/data
 

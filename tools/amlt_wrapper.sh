@@ -5,7 +5,7 @@ source tools/params_temp.env
 export CURRENT_DIR=$(dirname $(dirname $(realpath "$0")))
 
 if [ -z ${AMLT_MAP_INPUT_DIR} ]; then
-    export MODEL_DIR=${AMLT_MAP_INPUT_DIR}/ckpts/${MODEL_NAME}
+    export MODEL_DIR=${AMLT_MAP_INPUT_DIR}/ckpts
 else
     export MODEL_DIR=${AMLT_DATA_DIR}/models
 fi
@@ -45,5 +45,8 @@ for task in "${params_array[@]}"; do
         bash tools/chat.sh
     elif [[ $task =~ "train" ]]; then
         bash tools/train.sh
+        export MODEL_DIR=${AMLT_OUTPUT_DIR}/ckpts
+        export MODEL_PATH=${MODEL_DIR}/${MODEL_NAME}
+        bash tools/test_task.sh
     fi
 done

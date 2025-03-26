@@ -1,0 +1,24 @@
+
+  0%|                                                                                                                                                          | 0/18 [00:00<?, ?it/s]/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/torch/nn/parallel/_functions.py:68: UserWarning: Was asked to gather along dimension 0, but all input tensors were scalars; will instead unsqueeze and return a vector.
+  warnings.warn('Was asked to gather along dimension 0, but all '
+
+
+
+ 33%|████████████████████████████████████████████████▋                                                                                                 | 6/18 [00:11<00:17,  1.45s/it]/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/torch/nn/parallel/_functions.py:68: UserWarning: Was asked to gather along dimension 0, but all input tensors were scalars; will instead unsqueeze and return a vector.
+  warnings.warn('Was asked to gather along dimension 0, but all '
+ 39%|████████████████████████████████████████████████████████▊                                                                                         | 7/18 [00:12<00:18,  1.65s/it]
+
+
+ 56%|████████████████████████████████████████████████████████████████████████████████▌                                                                | 10/18 [00:16<00:11,  1.40s/it]
+
+
+ 67%|████████████████████████████████████████████████████████████████████████████████████████████████▋                                                | 12/18 [00:20<00:08,  1.38s/it]
+ 67%|████████████████████████████████████████████████████████████████████████████████████████████████▋                                                | 12/18 [00:20<00:08,  1.38s/it]/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/torch/nn/parallel/_functions.py:68: UserWarning: Was asked to gather along dimension 0, but all input tensors were scalars; will instead unsqueeze and return a vector.
+  warnings.warn('Was asked to gather along dimension 0, but all '
+
+
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 18/18 [00:27<00:00,  1.32s/it]/home/donglinbai/miniconda3/envs/sparse/lib/python3.9/site-packages/torch/nn/parallel/_functions.py:68: UserWarning: Was asked to gather along dimension 0, but all input tensors were scalars; will instead unsqueeze and return a vector.
+  warnings.warn('Was asked to gather along dimension 0, but all '
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 18/18 [00:28<00:00,  1.57s/it]
+{'eval_loss': 14.39020824432373, 'eval_runtime': 0.7222, 'eval_samples_per_second': 13.847, 'eval_steps_per_second': 1.385, 'epoch': 3.0}
+{'train_runtime': 35.0907, 'train_samples_per_second': 7.694, 'train_steps_per_second': 0.513, 'train_loss': 3.5073542065090604, 'epoch': 3.0}

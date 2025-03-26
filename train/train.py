@@ -221,7 +221,7 @@ def get_int_from_envs(name):
     return int(var) if var is not None else 0
 
 def get_float_from_envs(name):
-    var = os.environ.get(name)
+    var = os.environ.get(name)  
     return float(var) if var is not None else 0
 
 import math
@@ -257,13 +257,13 @@ def train():
     if training_args.use_lora:
         model = prepare_model_for_kbit_training(model)
     # prepare sparse
-    prepare_sparse_hook(model)
-    global_weight_preditor = model.predictor
-    if global_weight_preditor is not None:
-        attn_sp, mlp_sp, w_p, do_cr = get_sparsity_configs()
-        global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
-        global_weight_preditor.set_do_pre_prediction(do_cr)
-        global_weight_preditor.set_sparsity_threshold(data_args.threshold_path)
+    # prepare_sparse_hook(model)
+    # global_weight_preditor = model.predictor
+    # if global_weight_preditor is not None:
+    #     attn_sp, mlp_sp, w_p, do_cr = get_sparsity_configs()
+    #     global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
+    #     global_weight_preditor.set_do_pre_prediction(do_cr)
+    #     global_weight_preditor.set_sparsity_threshold(data_args.threshold_path)
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         model_args.model_name_or_path,
@@ -385,7 +385,7 @@ def train():
     #     param.requires_grad = True
     resume_ckpt = get_last_checkpoint(training_args.output_dir)
     print('resume_ckpt', resume_ckpt)
-    trainer.train(resume_from_checkpoint=resume_ckpt)
+    trainer.train(resume_from_checkpoint=None)
 
     safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)
 

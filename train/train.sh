@@ -31,7 +31,7 @@ deepspeed --no_ssh --node_rank=0 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
     --gradient_accumulation_steps 1 \
-    --gradient_checkpointing True \
+    --gradient_checkpointing False \
     --load_best_model_at_end False \
     --save_strategy "epoch" \
     --save_total_limit 1 \
@@ -46,4 +46,4 @@ deepspeed --no_ssh --node_rank=0 \
     --max_train_samples 999999 \
     --evaluation_strategy "steps" \
     --eval_steps  100 \
-    --use_lora False
+    --use_lora True

@@ -1,0 +1,46 @@
+diff --git a/train/train.py b/train/train.py
+index ff203f0..965ec1c 100644
+--- a/train/train.py
++++ b/train/train.py
+@@ -257,13 +257,13 @@ def train():
+     if training_args.use_lora:
+         model = prepare_model_for_kbit_training(model)
+     # prepare sparse
+-    prepare_sparse_hook(model)
+-    global_weight_preditor = model.predictor
+-    if global_weight_preditor is not None:
+-        attn_sp, mlp_sp, w_p, do_cr = get_sparsity_configs()
+-        global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
+-        global_weight_preditor.set_do_pre_prediction(do_cr)
+-        global_weight_preditor.set_sparsity_threshold(data_args.threshold_path)
++    # prepare_sparse_hook(model)
++    # global_weight_preditor = model.predictor
++    # if global_weight_preditor is not None:
++    #     attn_sp, mlp_sp, w_p, do_cr = get_sparsity_configs()
++    #     global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
++    #     global_weight_preditor.set_do_pre_prediction(do_cr)
++    #     global_weight_preditor.set_sparsity_threshold(data_args.threshold_path)
+ 
+     tokenizer = transformers.AutoTokenizer.from_pretrained(
+         model_args.model_name_or_path,
+@@ -385,7 +385,7 @@ def train():
+     #     param.requires_grad = True
+     resume_ckpt = get_last_checkpoint(training_args.output_dir)
+     print('resume_ckpt', resume_ckpt)
+-    trainer.train(resume_from_checkpoint=resume_ckpt)
++    trainer.train(resume_from_checkpoint=None)
+ 
+     safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)
+ 
+diff --git a/train/train.sh b/train/train.sh
+index 242fe4b..a1cb329 100644
+--- a/train/train.sh
++++ b/train/train.sh
+@@ -46,4 +46,4 @@ deepspeed --no_ssh --node_rank=0 \
+     --max_train_samples 999999 \
+     --evaluation_strategy "steps" \
+     --eval_steps  100 \
+-    --use_lora False
+\ No newline at end of file
++    --use_lora True
+\ No newline at end of file
