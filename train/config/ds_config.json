@@ -1,8 +1,8 @@
 {
-    "train_batch_size": "auto",  // DeepSpeed自动计算全局批次（根据设备数*梯度累积）
-    "gradient_accumulation_steps": 8,  // 与命令行参数一致
+    "train_batch_size": "auto",  
+    "gradient_accumulation_steps": 8, 
     "bf16": {
-      "enabled": true  // 启用BF16混合精度训练（与--bf16 True对应）
+      "enabled": true 
     },
     "zero_optimization": {
       "stage": 2,
@@ -16,15 +16,15 @@
     "optimizer": {
       "type": "AdamW",
       "params": {
-        "lr": "auto",           // 与命令行参数一致
+        "lr": "auto",          
         "betas": "auto",
         "eps": "auto",
-        "weight_decay": "auto"   // 与命令行参数--weight_decay 0.一致
+        "weight_decay": "auto" 
       }
     },
     "scheduler": {
-      "type": "constant",     // 与命令行参数--lr_scheduler_type "constant"一致
+      "type": "constant",   
       "params": {}
     },
-    "gradient_checkpointing": true  // 启用梯度检查点
+    "gradient_checkpointing": true  
   }

@@ -18,6 +18,13 @@ from utils.models import get_llm
 from quantization.qlinear import quant_and_dequant_model_q4_0
 
 
+IGNORE_INDEX = -100
+DEFAULT_PAD_TOKEN = "[PAD]"
+DEFAULT_EOS_TOKEN = "</s>"
+DEFAULT_BOS_TOKEN = "</s>"
+DEFAULT_UNK_TOKEN = "</s>"
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, help='LLaMA model.')
@@ -41,6 +48,15 @@ def main():
     model = get_llm(args.model)
 
     tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
+    print(f"EOS token: {tokenizer.eos_token} | ID: {tokenizer.eos_token_id}")
+    if tokenizer.eos_token is None:
+        tokenizer.add_special_tokens({
+            "eos_token": DEFAULT_EOS_TOKEN,
+            "bos_token": DEFAULT_BOS_TOKEN,
+            "unk_token": DEFAULT_UNK_TOKEN,
+        })
+    print(f"EOS token: {tokenizer.eos_token} | ID: {tokenizer.eos_token_id}")
+
     prepare_sparse_hook(model)
     model.eval()
     if args.quant:
@@ -59,8 +75,10 @@ def main():
                 outputs = model.generate(
                     inputs["input_ids"],
                     attention_mask=inputs["attention_mask"],
-                    max_length=100,
+                    max_new_tokens=100,
+                    do_sample=True,
                     num_return_sequences=1,
+                    eos_token_id=tokenizer.eos_token_id 
                 )
             response = tokenizer.decode(outputs[0], skip_special_tokens=True)
             print(f"Model: {response}")

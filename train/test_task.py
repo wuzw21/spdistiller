@@ -87,7 +87,6 @@ def eval(
                 use_cache=None,
                 limit=limit,
                 check_integrity=False,
-                log_samples=True,
             )
         except Exception as e:
             print(f"Task '{task_name}' testing failed: {e}")
