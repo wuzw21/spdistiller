@@ -1,19 +1,16 @@
 #!/bin/bash
+# Test task script for spdistiller
 
-cd train
-
-#--limit=500
-python test_task.py \
+python train/test_task.py \
     --model=${MODEL_PATH} \
-    --seed=42 \
     --task=${TEST_TASK} \
     --sparse=${SPARSE} \
-    --limit=-1 \
-    --num_shot=0 \
     --do_cr=${DO_CR} \
     --threshold_path=${THRESHOLD_PATH} \
     --sparse_strategy=${SPARSE_STRATEGY} \
+    --test_all=${TEST_ALL} \
+    --seed=42 \
+    --limit=${LIMIT:--1} \
+    --num_shot=5 \
     --batch_size=1 \
-    --quant=1 \
-    --test_all=${TEST_ALL}
-cd ..
+    --quant=1 

@@ -18,11 +18,14 @@ from utils.models import get_llm
 from quantization.qlinear import quant_and_dequant_model_q4_0
 
 
+def str_to_list(value):
+    return value.split(',')
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, help='LLaMA model.')
     parser.add_argument('--seed', type=int, default=0, help='Seed for sampling the calibration data.')
-    parser.add_argument("--task", nargs='+', help="List of tasks to evaluate")
+    parser.add_argument("--task", type=str_to_list, help="List of tasks to evaluate")
     parser.add_argument('--limit', type=int, default=-1, help='Number of test samples.')
     parser.add_argument('--num_shot',type=int, default=0,help='NUM_SHOT')
     parser.add_argument('--sparse', type=float, default=0,help='sparse')
@@ -33,6 +36,11 @@ def parse_args():
     parser.add_argument('--test_all',type=int,default=0)
     parser.add_argument('--quant',type=int,default=0)
     args = parser.parse_args()
+    print('-'*40)
+    print("Parsed arguments:")
+    for key, value in vars(args).items():
+        print(f"{key}: {value}")
+    print('-'*40)
     return args
 
 def download_dataset(task_name):
@@ -70,7 +78,6 @@ def eval(
     for task_name in task_names:
         num_fewshot = task_num_fewshot.get(task_name, num_shot)
 
-        # 评估当前任务
         try:
         # Evaluate the current task
             task_result = evaluator.simple_evaluate(
@@ -95,27 +102,17 @@ def eval(
 
 def process_compressed_pred(compressed_pred, output_file, layer_idx, weight_idx):
     """
-    处理压缩后的预测结果，提取前 20% 的最大元素，并将结果写入文件。
-    
-    参数:
-        compressed_pred: 压缩后的预测张量 (形状为 (batch_size, hidden_size))
-        output_file: 输出文件路径
-        layer_idx: 当前层的索引
-        weight_idx: 当前权重的索引
+    test
     """
-    # 按照大小排序
     sorted_pred, indices = torch.sort(compressed_pred, descending=True)
     
-    # 提取前 20% 的最大元素
     top_k = int(0.2 * compressed_pred.numel())
     top_elements = sorted_pred[:top_k]
     
-    # 计算这些元素占全部元素的比例
     total_sum = compressed_pred.sum().item()
     top_sum = top_elements.sum().item()
     top_ratio = top_sum / total_sum if total_sum > 0 else 0
-    
-    # 将结果写入文件
+
     with open(output_file, 'a') as f:
         f.write(f"Layer {layer_idx}, Weight {weight_idx}:\n")
         f.write(f"Top 20% elements: {top_elements.tolist()}\n")
@@ -124,7 +121,6 @@ def process_compressed_pred(compressed_pred, output_file, layer_idx, weight_idx)
         f.write(f"Top sum: {top_sum:.4f}\n")
         f.write("-" * 40 + "\n")
     
-    # 打印结果
     print(f"Layer {layer_idx}, Weight {weight_idx}:")
     # print(f"Top 20% elements: {top_elements.tolist()}")
     print(f"Top 20% ratio: {top_ratio:.4f}")
@@ -141,38 +137,6 @@ def debug_test(model):
         with open('test_crosslayer.txt', 'w') as f:
             pass  # 清空文件内容
 
-        # # 初始化一个字典来存储每层每个 iweight 的相似性结果
-        # layer_similarity_results = {iweight: [] for iweight in range(7)}
-
-        # # 遍历所有层和权重
-        # for ilayer in range(32):
-        #     for iweight in range(7):
-        #         similarities = global_weight_preditor.similarity_results[ilayer][iweight]
-        #         if similarities:  # 检查列表是否为空
-        #             with open('test_crosslayer.txt', 'a') as f:
-        #                 f.write(f"Layer {ilayer} Block {iweight} similarity {similarities}\n")
-        #             mean = sum(similarities) / len(similarities)
-        #             print(f"Layer {ilayer}, Weight {iweight}: Mean Similarity = {mean:.4f}")
-        #             layer_similarity_results[iweight].append(mean)  # 将均值存储到对应 iweight 的列表中
-        #         else:
-        #             print(f"Layer {ilayer}, Weight {iweight}: No similarity data available.")
-
-        # # 计算每个 iweight 的整体均值
-        # for iweight, means in layer_similarity_results.items():
-        #     if means:  # 检查是否有数据
-        #         overall_mean = sum(means) / len(means)
-        #         print(f"Overall Mean Similarity for iweight {iweight}: {overall_mean:.4f}")
-        #         with open('test_crosslayer.txt', 'a') as f:
-        #             f.write(f"Overall Mean Similarity for iweight {iweight}: {overall_mean:.4f} {overall_mean}\n" )
-        #     else:
-        #         print(f"No data available for iweight {iweight}.")
-
-        # output_file = "top_elements.txt"
-        # with open('top_elements.txt', 'w') as f:
-        #     pass  # 清空文件内容
-        # for ilayer in range(32) :
-        #     for iweight in range(7) :
-        #         process_compressed_pred(global_weight_preditor.wmetrics[ilayer][iweight], output_file, ilayer, iweight)
 
 def eval_for_sp_config(model_path, model, task_list, num_shot, batch_size, limit, sp_config, threshold_path, strategy):
     print("begin : sp_config: ", sp_config, "num_shot: ", num_shot)
@@ -216,10 +180,6 @@ def main():
         quant_and_dequant_model_q4_0(model)
 
     print("task: eval")
-
-    #task_list = ["boolq", "rte", "hellaswag", "winogrande", "arc_easy", "arc_challenge", "openbookqa"]
-    #task_list = ["boolq"]
-    #task_name = os.environ["EVAL_DATASET"]
     
     print(f"task_name: {args.task}")
     
@@ -227,21 +187,7 @@ def main():
     
     batch_size = args.batch_size
     
-    task_list = [
-        *args.task,
-        "wikitext",
-        "agieval",  
-        "arc_easy",
-        "arc_challenge",
-        "piqa",
-        "gsm8k",
-    ]
-    # easy debug
-    if os.environ.get('EASY_TEST','0') == '1':
-        task_list = [
-            # "gsm8k",
-            "wikitext",
-        ]
+    task_list = [*args.task]
         
     print('task_list',task_list)
     sp_configs = [(args.sparse, args.sparse, 0.00, args.do_cr)]

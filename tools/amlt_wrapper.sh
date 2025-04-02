@@ -21,6 +21,7 @@ else
     export MODEL_DIR=${AMLT_DATA_DIR}/models/${MODEL_NAME}
 fi
 echo "MODEL_DIR: ${MODEL_DIR}"
+export LIMIT=$limit
 export MODEL_PATH=${MODEL_DIR}
 # export MODEL_PATH=${MODEL_DIR}/${MODEL_NAME}
 export THRESHOLD_PATH="${CURRENT_DIR}/data/threshold/${MODEL_NAME}/sparse-${SPARSE}.json"
