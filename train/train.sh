@@ -16,6 +16,7 @@ export WANDB_DISABLED=true
 # --evaluation_strategy "steps"
 # --eval_steps 4
 # --bits 4 --quant_type Q4_0 --q_group_size 64
+echo $DATA_PATH
 deepspeed --no_ssh --node_rank=0 \
     --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
     --deepspeed config/zero.json \
@@ -34,16 +35,17 @@ deepspeed --no_ssh --node_rank=0 \
     --gradient_checkpointing False \
     --load_best_model_at_end False \
     --save_strategy "epoch" \
-    --save_total_limit 1 \
+    --save_total_limit 5 \
     --weight_decay 0. \
     --logging_steps 1 \
+    --learning_rate 5e-5 \
     --report_to "none" \
     --bits 4 \
     --quant_type Q4_0 \
     --q_group_size 64 \
-    --train_kd False \
-    --kd_loss_type "reverse" \
+    --train_kd True \
+    --kd_loss_type "forward" \
     --max_train_samples 999999 \
     --evaluation_strategy "steps" \
-    --eval_steps  100 \
-    --use_lora True
+    --eval_steps  1 \
+    --use_lora False

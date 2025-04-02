@@ -24,7 +24,7 @@ from quantization.qlinear import QLinear, convertModelToQuant
 from quantization.clip_utils import apply_clip
 import logging
 from dataclasses import dataclass, field
-from mytrainer import KDTrainer
+from train.mytrainer_new import KDTrainer
 import random
 from tqdm import tqdm
 from datasets import load_dataset

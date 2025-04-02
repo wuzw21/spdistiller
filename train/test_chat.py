@@ -59,7 +59,7 @@ def main():
                 outputs = model.generate(
                     inputs["input_ids"],
                     attention_mask=inputs["attention_mask"],
-                    max_length=50,
+                    max_length=100,
                     num_return_sequences=1,
                 )
             response = tokenizer.decode(outputs[0], skip_special_tokens=True)

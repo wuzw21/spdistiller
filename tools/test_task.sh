@@ -8,7 +8,7 @@ python test_task.py \
     --seed=42 \
     --task=${TEST_TASK} \
     --sparse=${SPARSE} \
-    --limit=10 \
+    --limit=-1 \
     --num_shot=0 \
     --do_cr=${DO_CR} \
     --threshold_path=${THRESHOLD_PATH} \

@@ -121,8 +121,9 @@ def quant_and_dequant_tensor_q4_0_v2(x, do_transpose=False):
     # print(x.device)
     org_w_shape = x.shape
 
-    q_group_size = 64
+    q_group_size = 32
     if q_group_size > 0:
+        # print(org_w_shape)
         assert org_w_shape[-1] % q_group_size == 0
         x = x.reshape(-1, q_group_size)
     assert x.dim() == 2

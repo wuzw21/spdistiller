@@ -71,7 +71,7 @@ def traverse_and_register_hooks(model):
     return weight_map
 
 def prepare_sparse_hook(model) :
-    # print(model)
+    print(model)
     print('begin model sparse hook setting...')
     weight_map = traverse_and_register_hooks(model)
     # print('finish model sparse hook setting...')

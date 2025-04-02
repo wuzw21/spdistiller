@@ -20,14 +20,21 @@ cd data/generation
 
 
 for dataset in "${datasets[@]}"; do
-    torchrun --nproc_per_node=${NUM_GPUS} generate.py \
+    # torchrun --nproc_per_node=${NUM_GPUS} generate.py \
+    #     --base_model ${MODEL_PATH} \
+    #     --dataset_name $dataset \
+    #     --out_path  $output_path \
+    #     --batch_size $batch_size \
+    #     --max_sample $max_sample \
+    #     --threshold_path ${THRESHOLD_PATH}
+    python single_generate.py \
         --base_model ${MODEL_PATH} \
         --dataset_name $dataset \
         --out_path  $output_path \
         --batch_size $batch_size \
         --max_sample $max_sample \
-        --threshold_path ${THRESHOLD_PATH}
-done
+        --temperature $temperature
+    done
 
 # merge data
 json_paths=()

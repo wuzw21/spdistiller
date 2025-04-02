@@ -4,12 +4,6 @@ source tools/params_temp.env
 
 export CURRENT_DIR=$(dirname $(dirname $(realpath "$0")))
 
-if [ -z ${AMLT_MAP_INPUT_DIR} ]; then
-    export MODEL_DIR=${AMLT_MAP_INPUT_DIR}/ckpts
-else
-    export MODEL_DIR=${AMLT_DATA_DIR}/models
-fi
-
 export OUTPUT_DIR=${AMLT_OUTPUT_DIR}
 export DATA_DIR=${AMLT_DATA_DIR}
 
@@ -21,7 +15,14 @@ export TEST_TASK=$test_task
 export TEST_ALL=$test_all
 export DATASET=$dataset
 
-export MODEL_PATH=${MODEL_DIR}/${MODEL_NAME}
+if [ -n "${AMLT_MAP_INPUT_DIR}" ]; then
+    export MODEL_DIR=${AMLT_MAP_INPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64
+else
+    export MODEL_DIR=${AMLT_DATA_DIR}/models/${MODEL_NAME}
+fi
+echo "MODEL_DIR: ${MODEL_DIR}"
+export MODEL_PATH=${MODEL_DIR}
+# export MODEL_PATH=${MODEL_DIR}/${MODEL_NAME}
 export THRESHOLD_PATH="${CURRENT_DIR}/data/threshold/${MODEL_NAME}/sparse-${SPARSE}.json"
 
 ### =================================================================================== ###
@@ -36,6 +37,7 @@ for task in "${params_array[@]}"; do
     echo current_task: $task
     # continue
     if [[ $task =~ "test" ]]; then
+        
         bash tools/test_task.sh
     elif [[ $task =~ "generate_teacher_data" ]]; then
         bash tools/generate_teacher_data.sh
@@ -45,7 +47,7 @@ for task in "${params_array[@]}"; do
         bash tools/chat.sh
     elif [[ $task =~ "train" ]]; then
         bash tools/train.sh
-        export MODEL_DIR=${AMLT_OUTPUT_DIR}/ckpts
+        export MODEL_DIR=${OUTPUT_DIR}/ckpts
         export MODEL_PATH=${MODEL_DIR}/${MODEL_NAME}
         bash tools/test_task.sh
     fi

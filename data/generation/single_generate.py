@@ -228,7 +228,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=42, help="seed")
     parser.add_argument("--out_path", default="", type=str, help="output datapath")
     parser.add_argument("--max_sample", type=int, default=None, help="max_sample")
-    parser.add_argument("--temperature", type=int, default=0.2, help="generation temperature")
+    parser.add_argument("--temperature", type=float, default=0.2, help="generation temperature")
     parser.add_argument("--max_new_tokens", type=int, default=1024, help="max new tokens")
     parser.add_argument("--return_seq_num", type=int, default=1, help="return seq num")
     args = parser.parse_args()

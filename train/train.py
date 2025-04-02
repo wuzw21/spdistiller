@@ -22,7 +22,7 @@ import glob
 import torch.distributed as dist
 
 from accelerate import init_empty_weights, infer_auto_device_map, dispatch_model
-from mytrainer import KDTrainer
+from train.mytrainer import KDTrainer
 import random
 from tqdm import tqdm
 from datasets import load_dataset
@@ -67,7 +67,6 @@ class DataArguments:
         default=None,
         metadata={"help": "For debugging purposes or quicker training, truncate the number of training examples to this value if set."},
     )
-
 @dataclass
 class TrainingArguments(transformers.TrainingArguments):
     cache_dir: Optional[str] = field(default=None)
@@ -224,20 +223,6 @@ def get_float_from_envs(name):
     var = os.environ.get(name)  
     return float(var) if var is not None else 0
 
-import math
-def compute_metrics(eval_pred):
-
-    try:
-        loss = eval_pred.metrics["eval_loss"]
-        if loss is not None:
-            ppl = math.exp(loss)
-        else:
-            ppl = float("inf")
-    except Exception as e:
-        ppl = float("inf")
-
-    return {"ppl": ppl}
-
 def train():
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
@@ -257,13 +242,13 @@ def train():
     if training_args.use_lora:
         model = prepare_model_for_kbit_training(model)
     # prepare sparse
-    # prepare_sparse_hook(model)
-    # global_weight_preditor = model.predictor
-    # if global_weight_preditor is not None:
-    #     attn_sp, mlp_sp, w_p, do_cr = get_sparsity_configs()
-    #     global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
-    #     global_weight_preditor.set_do_pre_prediction(do_cr)
-    #     global_weight_preditor.set_sparsity_threshold(data_args.threshold_path)
+    prepare_sparse_hook(model)
+    global_weight_preditor = model.predictor
+    if global_weight_preditor is not None:
+        attn_sp, mlp_sp, w_p, do_cr = get_sparsity_configs()
+        global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
+        global_weight_preditor.set_do_pre_prediction(do_cr)
+        global_weight_preditor.set_sparsity_threshold(data_args.threshold_path)
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         model_args.model_name_or_path,
@@ -292,12 +277,12 @@ def train():
     # load quantization if specified
     if training_args.quant_type is not None:
         print("converting the model to qat, this may take a while...")
-        # model, _ = convertModelToQuant(model, compute_dtype=torch.bfloat16, quant_type=training_args.quant_type, q_group_size=training_args.q_group_size)
+        model, _ = convertModelToQuant(model, compute_dtype=torch.bfloat16, quant_type=training_args.quant_type, q_group_size=training_args.q_group_size)
     if training_args.clip is not None:
-        # q_config = {"zero_point": True, "q_group_size": training_args.q_group_size}
-        # print("Loading pre-computed Clipping results from", training_args.clip)
-        # clip_results = torch.load(training_args.clip)
-        # apply_clip(model, clip_results)
+        q_config = {"zero_point": True, "q_group_size": training_args.q_group_size}
+        print("Loading pre-computed Clipping results from", training_args.clip)
+        clip_results = torch.load(training_args.clip)
+        apply_clip(model, clip_results)
         print("Clipping init successfully!")
         
     # 如果需要进行LoRA微调，则包装模型
@@ -372,9 +357,9 @@ def train():
 
     # load trainer (这里假设LoRA和KD微调互斥)
     if training_args.train_kd:
-        trainer = KDTrainer(model=model, tokenizer=tokenizer, teacher_model=teacher_model, loss_type=training_args.kd_loss_type, mean_prob=mean_prob, args=training_args, compute_metrics=compute_metrics, **data_module)
+        trainer = KDTrainer(model=model, tokenizer=tokenizer, teacher_model=teacher_model, loss_type=training_args.kd_loss_type, mean_prob=mean_prob, args=training_args, **data_module)
     else:
-        trainer = Trainer(model=model, tokenizer=tokenizer, args=training_args, compute_metrics=compute_metrics, **data_module)
+        trainer = Trainer(model=model, tokenizer=tokenizer, args=training_args, **data_module)
 
     # for name, param in model.named_parameters():
     #     if param.requires_grad:
@@ -385,7 +370,7 @@ def train():
     #     param.requires_grad = True
     resume_ckpt = get_last_checkpoint(training_args.output_dir)
     print('resume_ckpt', resume_ckpt)
-    trainer.train(resume_from_checkpoint=None)
+    trainer.train()
 
     safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)
 

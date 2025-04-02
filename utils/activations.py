@@ -7,7 +7,7 @@ import time
 class ActivationModule:
     def __init__(self) :
         self.histograms_only: bool = False
-        self.visualize_strategy: bool = False
+        self.visualize_strategy: bool = True
         self.activations = None
         self.histograms = None
         self.file_path = None
@@ -78,23 +78,57 @@ class ActivationModule:
         bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
         return hist.cpu().numpy(), bin_edges.cpu().numpy(), bin_centers.cpu().numpy()
 
+    
     def visualize_histogram(self, layer_idx, weight_idx):
         histograms_path = os.path.join(self.file_path, f"layer_{layer_idx}", f"weight_{weight_idx}", "histograms.pt")
 
         # load histogram
-        histogram_data = torch.load(histograms_path, map_location='cpu', weights_only=True)
+        histogram_data = torch.load(histograms_path, map_location='cpu')
         histogram, bin_edges, bin_centers = histogram_data['histogram'], histogram_data['bin_edges'], histogram_data['bin_centers']
 
-        plt.figure(figsize=(8, 6))
-        plt.bar(bin_centers, histogram, width=(bin_edges[-1] - bin_edges[0]) / len(bin_edges), alpha=0.7, color='blue')
-        plt.xlabel("Value")
-        plt.ylabel("Frequency")
-        plt.title(f"Histogram for Layer {layer_idx}, Weight {weight_idx}")
+        plt.figure(figsize=(12, 8))
+        plt.bar(bin_centers, histogram, width=(bin_edges[-1] - bin_edges[0]) / len(bin_edges), alpha=0.7, color='blue', label='Histogram')
+        plt.xlabel("Value", fontsize=14)
+        plt.ylabel("Frequency", fontsize=14)
+        plt.title(f"Histogram for Layer {layer_idx}, Weight {weight_idx}", fontsize=16)
+
+        # Calculate the absolute values and their frequencies
+        absolute_values = np.abs(bin_centers)
+        sorted_indices = np.argsort(absolute_values)
+        sorted_absolute_values = absolute_values[sorted_indices]
+        sorted_frequencies = histogram[sorted_indices]
+
+        # Calculate cumulative frequency
+        cumulative_frequency = np.cumsum(sorted_frequencies)
+        total_frequency = cumulative_frequency[-1]
+        percentiles = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+        percentile_thresholds = []
+
+        for p in percentiles:
+            threshold_index = np.searchsorted(cumulative_frequency, p * total_frequency)
+            if threshold_index < len(sorted_absolute_values):
+                percentile_thresholds.append(sorted_absolute_values[threshold_index])
+            else:
+                percentile_thresholds.append(sorted_absolute_values[-1])
+
+        # Plot vertical lines for each percentile threshold
+        colors = ['red', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'cyan', 'magenta']
+        for i, (p, threshold) in enumerate(zip(percentiles, percentile_thresholds)):
+            plt.axvline(x=threshold, color=colors[i % len(colors)], linestyle='--', linewidth=2.0, label=f'{int(p*100)}%')
+            plt.axvline(x=-threshold, color=colors[i % len(colors)], linestyle='--', linewidth=2.0)
+            plt.text(threshold, plt.ylim()[1]*0.95 - i*0.04*plt.ylim()[1], f'{int(p*100)}%', color=colors[i % len(colors)], ha='center', fontsize=12)
+            plt.text(-threshold, plt.ylim()[1]*0.95 - i*0.04*plt.ylim()[1], f'{int(p*100)}%', color=colors[i % len(colors)], ha='center', fontsize=12)
+
+        plt.legend(fontsize=12)
+        plt.grid(True, alpha=0.3)
 
         # save histogram
-        plt.savefig(os.path.join(self.file_path, "histograms_png", f"layer_{layer_idx}-weight_{weight_idx}-histograms.png"))
+        save_dir = os.path.join(self.file_path, "histograms_png")
+        os.makedirs(save_dir, exist_ok=True)
+        save_path = os.path.join(save_dir, f"layer_{layer_idx}-weight_{weight_idx}-histograms.png")
+        plt.savefig(save_path)
         plt.show()
-        plt.close() 
+        plt.close()
 
     
     def save_layer_weight(self, layer_idx, weight_idx) :

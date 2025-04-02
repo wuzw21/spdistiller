@@ -71,3 +71,4 @@ cover/
 logs/
 plt/
 doc/
+wandb

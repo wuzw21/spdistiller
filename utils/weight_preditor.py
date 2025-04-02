@@ -208,6 +208,9 @@ class WeightPredictor(object):
         print('weight_counters', self.weight_counters)
         self.reset()
 
+    def get_sparsity(self) :
+        return self.attn_sp
+
 
 def _init_weight_predictor(model_name=None):
     

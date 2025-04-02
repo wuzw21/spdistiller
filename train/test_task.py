@@ -50,7 +50,7 @@ def download_dataset(task_name):
 def eval(
     model,
     task_list=["boolq", "rte", "hellaswag", "winogrande", "arc_challenge", "arc_easy", "openbookqa"],
-    num_fewshot=0,
+    num_shot=0,
     batch_size=1,
     limit=None
 ):
@@ -64,12 +64,11 @@ def eval(
     task_num_fewshot = {
         "agieval": 0,
         "mmlu": 5,
-        # 其他任务的 num_fewshot 设置
     }
     lm_eval_model = HFLM(model, batch_size=batch_size, max_length=2048)
     results = []
     for task_name in task_names:
-        num_fewshot = task_num_fewshot.get(task_name, num_fewshot)
+        num_fewshot = task_num_fewshot.get(task_name, num_shot)
 
         # 评估当前任务
         try:
@@ -240,16 +239,17 @@ def main():
     # easy debug
     if os.environ.get('EASY_TEST','0') == '1':
         task_list = [
+            # "gsm8k",
             "wikitext",
         ]
         
     print('task_list',task_list)
     sp_configs = [(args.sparse, args.sparse, 0.00, args.do_cr)]
     if args.test_all:
-        sp_configs = [(0,0,0,0), (0.5,0.5,0,0), (0.6,0.6,0,0), (args.sparse, args.sparse, 0.00, args.do_cr)]
+        sp_configs = [(0,0,0,0), (0.5,0.5,0,0), (0.6,0.6,0,0), (0.7,0.7,0,0), (0.8,0.8,0,0), (args.sparse, args.sparse, 0.00, args.do_cr)]
         sp_configs = list(set(sp_configs))
         
-    num_shots= [3]
+    num_shots= [5]
     
     print('sp_configs: ',sp_configs)
     for sp_config in sp_configs:
@@ -258,7 +258,7 @@ def main():
                 data_dir = os.environ.get('DATA_DIR')
                 model_name = os.environ.get('MODEL_NAME')
                 sparse = sp_config[0]
-                threshold_path = f'{data_dir}/data/threshold/{model_name}/sparse-{sparse}.json'
+                threshold_path = f'{data_dir}/threshold/{model_name}/sparse-{sparse}.json'
             else :
                 threshold_path = args.threshold_path
             eval_for_sp_config(args.model, model, task_list, num_shot, batch_size, limit, sp_config, threshold_path, args.sparse_strategy)
