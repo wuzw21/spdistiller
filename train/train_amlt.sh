@@ -56,7 +56,7 @@ deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
     --load_best_model_at_end False \
     --save_strategy "epoch" \
     --save_total_limit 1 \
-    --learning_rate 8e-6 \
+    --learning_rate 5e-4 \
     --lr_scheduler_type "constant" \
     --weight_decay 0. \
     --logging_steps 1 \
@@ -69,7 +69,7 @@ deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
     --kd_loss_type "forward" \
     --max_train_samples 999999 \
     --max_memory ${MAX_MEMORY} \
-    --evaluation_strategy "steps" \
+    --evaluation_strategy "no" \
     --eval_steps 2000 \
     --use_lora False
 

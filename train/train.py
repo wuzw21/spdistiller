@@ -307,7 +307,7 @@ def train():
     # load quantization if specified
     if training_args.quant_type is not None:
         print("converting the model to qat, this may take a while...")
-        # model, _ = convertModelToQuant(model, compute_dtype=torch.bfloat16, quant_type=training_args.quant_type, q_group_size=training_args.q_group_size)
+        model, _ = convertModelToQuant(model, compute_dtype=torch.bfloat16, quant_type=training_args.quant_type, q_group_size=training_args.q_group_size)
     if training_args.clip is not None:
         # q_config = {"zero_point": True, "q_group_size": training_args.q_group_size}
         # print("Loading pre-computed Clipping results from", training_args.clip)
