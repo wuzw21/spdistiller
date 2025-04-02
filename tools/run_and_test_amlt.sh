@@ -1,7 +1,7 @@
 #!/bin/bash
 export AMLT_MODE=1
 
-sparse_values=(0.5 0.6)
+sparse_values=(0.5)
 # sparse_values=(0.7)
 cr_values=(0)
 # model_name=Llama-2-7b-chat-hf
@@ -13,7 +13,7 @@ TEST_TASK=mmlu
 TEST_ALL=0
 # TASK_MODEL_NAME=test_big_downstreamtask
 # TASK_MODEL_NAME=wac8k-cakld-4bit-40G4A100
-TASK_MODEL_NAME=q4_distillation 
+TASK_MODEL_NAME=q4_distillation-a100
 # TASK_MODEL_NAME=wac8k-static-STE
 for sparse in "${sparse_values[@]}"; do
     for cr in "${cr_values[@]}"; do
@@ -25,9 +25,9 @@ for sparse in "${sparse_values[@]}"; do
         
         # amlt run --sla standard mi300.yaml :gcrbitdistiller "$task_name" --extra-args "$model_name $sparse $cr $sparse_strategy $TEST_TASK $TEST_ALL"
 
-        # amlt run --sla premium bitdistiller.yaml :gcrbitdistiller "$task_name" --extra-args "$model_name $sparse $cr $sparse_strategy $TEST_TASK $TEST_ALL"
-
         amlt run --sla premium bitdistiller.yaml :gcrbitdistiller "$task_name" --extra-args "$model_name $sparse $cr $sparse_strategy $TEST_TASK $TEST_ALL"
+
+        # amlt run --sla premium bitdistiller.yaml :gcrbitdistiller "$task_name" --extra-args "$model_name $sparse $cr $sparse_strategy $TEST_TASK $TEST_ALL"
 
         # amlt run --sla premium bitdistiller.yaml :gcr_generate_threshold "$task_name" --extra-args "$model_name"
         
