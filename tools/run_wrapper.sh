@@ -36,6 +36,8 @@ for task in "${params_array[@]}"; do
     if [[ $task =~ "test" ]]; then
         # export MODEL_PATH=/data/wzw/models/Llama-2-7b-chat-hf-0.7-static-STE/ckpts/Llama-2-7b-chat-hf/int4-g64/checkpoint-280
         bash tools/test_task.sh
+    elif [[ $task == "test_all" ]]; then
+        bash tools/test_task_all.sh
     elif [[ $task =~ "generate_teacher_data" ]]; then
         bash tools/generate_teacher_data.sh
     elif [[ $task =~ "generate_threshold" ]]; then

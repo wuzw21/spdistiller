@@ -106,7 +106,7 @@ def train():
     model = transformers.AutoModelForCausalLM.from_pretrained(
         model_args.model_name_or_path,
         torch_dtype=torch.bfloat16,
-        device_map=None,
+        device_map=device_map,
     )
     # model.config.use_cache = False
     # prepare sparse
@@ -222,7 +222,7 @@ def train():
         dist.all_reduce(mean_prob, op=dist.ReduceOp.SUM)
         mean_prob = mean_prob / dist.get_world_size()
         print(f"Get the coefficient: {mean_prob}")
-
+    model.to('cpu')
     # load trainer (这里假设LoRA和KD微调互斥)
     if training_args.train_kd:
         trainer = KDTrainer(model=model, tokenizer=tokenizer, teacher_model=teacher_model, loss_type=training_args.kd_loss_type, mean_prob=mean_prob, args=training_args, **data_module)

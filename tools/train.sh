@@ -20,7 +20,8 @@ export WANDB_DISABLED=true
 # --eval_steps 4
 # --bits 4 --quant_type Q4_0 --q_group_size 64
 echo $DATA_PATH
-deepspeed --no_ssh --node_rank=0 \
+deepspeed --no_ssh --node_rank=0  \
+    --num_nodes=1 --num_gpus=4 \
     --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
     --deepspeed config/zero.json \
     --model_name_or_path ${MODEL_PATH} \

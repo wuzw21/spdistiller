@@ -1,6 +1,6 @@
 transformers==4.48.0
 datasets
-deepspeed==0.16.4
+deepspeed==0.14.2
 sentencepiece
 tensorboardX
 accelerate==1.5.2
@@ -24,3 +24,4 @@ peft==0.15.0
 fraction
 wandb
 matplotlib
+# unsloth

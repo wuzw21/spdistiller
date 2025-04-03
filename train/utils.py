@@ -149,8 +149,11 @@ def smart_tokenizer_and_embedding_resize(
     tokenizer: transformers.PreTrainedTokenizer,
     model: transformers.PreTrainedModel,
 ):
+    print('1')
     num_new_tokens = tokenizer.add_special_tokens(special_tokens_dict)
+    print('2')
     model.resize_token_embeddings(len(tokenizer))
+    print('3')
     if num_new_tokens > 0:
         input_embeddings = model.get_input_embeddings().weight.data
         output_embeddings = model.get_output_embeddings().weight.data

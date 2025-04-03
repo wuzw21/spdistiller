@@ -73,4 +73,6 @@ plt/
 doc/
 wandb
 tools/params_temp.env
-/tools/run_and_test_amlt.sh
+tools/run_and_test_amlt.sh
+tools/train_amlt.sh
+tools/train.sh
