@@ -13,7 +13,7 @@ TEST_TASK=mmlu
 TEST_ALL=0
 # TASK_MODEL_NAME=test_big_downstreamtask
 # TASK_MODEL_NAME=wac8k-cakld-4bit-40G4A100
-TASK_MODEL_NAME=q4_distillation-a100
+TASK_MODEL_NAME=q4_distillation-lr_1e-6
 # TASK_MODEL_NAME=wac8k-static-STE
 for sparse in "${sparse_values[@]}"; do
     for cr in "${cr_values[@]}"; do

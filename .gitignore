@@ -72,3 +72,4 @@ cover/
 logs/
 plt/
 tools/run_and_test_amlt.sh
+train/train_amlt.sh
