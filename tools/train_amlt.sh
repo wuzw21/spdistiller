@@ -12,8 +12,7 @@ export GLOO_SOCKET_IFNAME="lo"
 export NCCL_SOCKET_IFNAME="lo"
 export WANDB_DISABLED=true
 
-deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
-    --hostfile=hostfile_local --no_ssh --node_rank=0 \
+deepspeed --hostfile=hostfile_local --no_ssh --node_rank=0 \
     --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
     --deepspeed config/zero.json \
     --model_name_or_path ${MODEL_PATH} \
@@ -34,7 +33,7 @@ deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
     --save_total_limit 3 \
     --weight_decay 0. \
     --logging_steps 1 \
-    --learning_rate 5e-5 \
+    --learning_rate 1e-6 \
     --report_to "none" \
     --bits 4 \
     --quant_type Q4_0 \
@@ -42,8 +41,9 @@ deepspeed --num_nodes=1 --num_gpus=${NUM_GPUS} \
     --train_kd True \
     --kd_loss_type "cakld" \
     --max_train_samples 999999 \
-    --evaluation_strategy "steps" \
+    --evaluation_strategy "no" \
     --eval_steps 2000 \
-    --use_lora False
+    --use_lora False \
+    --load_checkpoint True
 
 cd ..

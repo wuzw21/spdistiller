@@ -72,6 +72,7 @@ def eval(
     task_num_fewshot = {
         "agieval": 0,
         "mmlu": 5,
+        "arc_challenge": 25,
     }
     lm_eval_model = HFLM(model, batch_size=batch_size, max_length=2048)
     results = []

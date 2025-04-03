@@ -35,13 +35,12 @@ deepspeed --no_ssh --node_rank=0 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
     --gradient_accumulation_steps 1 \
-    --gradient_checkpointing False \
+    --gradient_checkpointing True \
     --load_best_model_at_end False \
     --save_strategy "epoch" \
     --save_total_limit 5 \
-    --weight_decay 0. \
     --logging_steps 1 \
-    --learning_rate 5e-5 \
+    --learning_rate 1e-7 \
     --report_to "none" \
     --bits 4 \
     --quant_type Q4_0 \
@@ -50,6 +49,7 @@ deepspeed --no_ssh --node_rank=0 \
     --kd_loss_type "forward" \
     --max_train_samples 999999 \
     --evaluation_strategy "epoch" \
-    --use_lora False
+    --use_lora False \
+    --load_checkpoint False
 
 cd ..

@@ -72,3 +72,5 @@ logs/
 plt/
 doc/
 wandb
+tools/params_temp.env
+/tools/run_and_test_amlt.sh

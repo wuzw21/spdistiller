@@ -84,6 +84,7 @@ class TrainingArguments(transformers.TrainingArguments):
     )
     eval_steps: int = field(default=500, metadata={"help": "Number of update steps between two evaluations."})
     use_lora: bool = field(default=False, metadata={"help": "Whether to use LoRA for fine-tuning."})
+    load_checkpoint: bool = field(default=False, metadata={"help": "Whether to load checkpoint."})
 
 def safe_save_model_for_hf_trainer(trainer: transformers.Trainer, output_dir: str):
     state_dict = trainer.model.state_dict()
@@ -107,6 +108,7 @@ def train():
         torch_dtype=torch.bfloat16,
         device_map=None,
     )
+    # model.config.use_cache = False
     # prepare sparse
     prepare_sparse_hook(model)
     global_weight_preditor = model.predictor
@@ -234,9 +236,14 @@ def train():
     #         print(name, "None requires grad")
     # for param in model.parameters():
     #     param.requires_grad = True
-    resume_ckpt = get_last_checkpoint(training_args.output_dir)
-    print('resume_ckpt', resume_ckpt)
-    trainer.train(resume_from_checkpoint=resume_ckpt)
+    print('begin training')
+    if training_args.load_checkpoint :
+        resume_ckpt = get_last_checkpoint(training_args.output_dir)
+        print('resume_ckpt', resume_ckpt)
+        trainer.train(resume_from_checkpoint=resume_ckpt)
+    else :
+        trainer.train()
+    print('finish training')
 
     safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)
 

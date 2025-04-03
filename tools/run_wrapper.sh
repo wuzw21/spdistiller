@@ -16,6 +16,7 @@ export TEST_TASK=$test_task
 export TEST_ALL=$test_all
 export DATASET=$dataset
 export LIMIT=$limit
+echo LIMIT $LIMIT
 export MODEL_PATH=${MODEL_PATH:-${MODEL_DIR}/${MODEL_NAME}}
 export THRESHOLD_PATH="${DATA_DIR}/threshold/${MODEL_NAME}/sparse-${SPARSE}.json"
 
