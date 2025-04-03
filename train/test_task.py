@@ -50,7 +50,7 @@ def eval(
     model,
     tokenizer,
     task_list=["boolq", "rte", "hellaswag", "winogrande", "arc_challenge", "arc_easy", "openbookqa"],
-    num_fewshot=0,
+    num_shots=0,
     batch_size=1,
     limit=None
 ):
@@ -69,7 +69,7 @@ def eval(
     lm_eval_model = HFLM(model, tokenizer=tokenizer, batch_size=batch_size, max_length=2048)
     results = []
     for task_name in task_names:
-        num_fewshot = task_num_fewshot.get(task_name, num_fewshot)
+        num_fewshot = task_num_fewshot.get(task_name, num_shots)
 
         # 评估当前任务
         try:
@@ -257,7 +257,7 @@ def main():
         sp_configs = [(0,0,0,0), (0.5,0.5,0,0), (0.6,0.6,0,0), (args.sparse, args.sparse, 0.00, args.do_cr)]
         sp_configs = list(set(sp_configs))
         
-    num_shots= [3]
+    num_shots= [5]
     
     print('sp_configs: ',sp_configs)
     for sp_config in sp_configs:
