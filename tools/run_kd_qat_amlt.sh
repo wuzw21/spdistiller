@@ -47,8 +47,8 @@ fi
 
 bash train_amlt.sh \
     ${AMLT_DATA_DIR}/datasets/${MODEL_NAME}/${DATASET} \
-    ${AMLT_OUTPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64/ \
-    ${AMLT_OUTPUT_DIR}/logs/${MODEL_NAME}/int4-g64/ \
+    ${AMLT_OUTPUT_DIR}/ckpts/${MODEL_NAME}/ \
+    ${AMLT_OUTPUT_DIR}/logs/${MODEL_NAME}/ \
     ${NUM_TRAIN_EPOCHS} \
     ${MODEL_PATH} \
     ${MODEL_NAME}

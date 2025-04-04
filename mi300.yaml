@@ -30,10 +30,10 @@ jobs:
   - rocm-smi
   - sleep infinity
 - name: gcrbitdistiller
-  sku: 192G4-MI300X-IB-xGMI
+  sku: 192G8-MI300X-IB-xGMI
   command:
   - bash tools/run_kd_qat_amlt.sh $EXTRA_ARGS
-  - sleep infinity
+  # - sleep infinity
   mpi: False
   process_count_per_node: 0
   submit_args:

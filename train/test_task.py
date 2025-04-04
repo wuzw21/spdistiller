@@ -64,6 +64,7 @@ def eval(
     task_num_fewshot = {
         "agieval": 0,
         "mmlu": 5,
+        "arc_challenge": 25,
         # 其他任务的 num_fewshot 设置
     }
     lm_eval_model = HFLM(model, tokenizer=tokenizer, batch_size=batch_size, max_length=2048)
@@ -239,7 +240,7 @@ def main():
         "arc_easy",
         "arc_challenge",
         "piqa",
-        # "gsm8k",
+        "gsm8k",
         
         # "humaneval",
     ]
@@ -250,6 +251,7 @@ def main():
             "agieval",      # 确认是否应为 "agi_eval" 或其他名称
             "arc_easy",
             "arc_challenge",
+            "gsm8k"
         ]
     print('task_list',task_list)
     sp_configs = [(args.sparse, args.sparse, 0.00, args.do_cr)]

@@ -4,7 +4,7 @@ export MODEL_NAME=$1
 # export MODEL_NAME=Phi-3.5-mini-instruct
 
 if [ -n "$AMLT_MAP_INPUT_DIR" ]; then
-    export MODEL=${AMLT_MAP_INPUT_DIR}/ckpts/${MODEL_NAME}/int4-g64
+    export MODEL=${AMLT_MAP_INPUT_DIR}/ckpts/${MODEL_NAME}
 else
     export MODEL=${AMLT_DATA_DIR}/models/${MODEL_NAME}
 fi
