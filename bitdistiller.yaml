@@ -24,14 +24,12 @@ jobs:
   - bash tools/generate_teacher_data_amlt.sh
   mpi: False
   process_count_per_node: 0
-  submit_args:
-    env:
-      NCCL_DEBUG: info
   identity: managed
   submit_args:
     env:
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
       SKU: 40G4-A100
+      NCCL_DEBUG: info
 
 - name: gcrbitdistiller
   sku: 80G4-A100
