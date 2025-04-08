@@ -1,13 +1,14 @@
 
 sparse_values=(0.5)
 cr_values=(0)
-model_name=Meta-Llama-3-8B
+model_name=Llama-2-7b-chat-hf
 sparse_strategy=Static
 test_task=mmlu,wikitext,gsm8k,agieval,arc_easy,arc_challenge,piqa
 test_all=0
 # TASK_MODEL_NAME=wac8k-cakld-4bit-80G4A100
-TASK_MODEL_NAME=q4_distillation-a100
-tasks_array=test_all
+# TASK_MODEL_NAME=q4_distillation-lr_1e-6
+TASK_MODEL_NAME=Testall
+tasks_array=test
 limit=-1
 
 if [ "$model_name" = "Meta-Llama-3-8B" ] || [ "$model_name" = "Llama-2-7b-chat-hf" ] || [ "$model_name" = "Llama-2-13b-chat-hf" ]; then
@@ -39,8 +40,9 @@ for sparse in "${sparse_values[@]}"; do
 
         log_params
         
-        amlt map --sla Premium bitdistiller.yaml :gcr_bitdistiller "$job_name" :gcrbitdistiller --description "big_dataset_$model"
-        # amlt run --sla Premium bitdistiller.yaml :gcr_bitdistiller "$job_name" --description "sacle-downstream_task-big_dataset_$model"
-        # amlt run --sla Standard mi300.yaml :gcr_wrapper "$job_name" --description "train_cakld_$model"
+        # amlt map --sla Premium bitdistiller.yaml :test_task "$job_name" :gcrbitdistiller --description "big_dataset_$model"
+        # amlt run --sla Premium bitdistiller.yaml :gcr_bitdistiller "$job_name" --description "${model}_train_1e-6"
+        amlt run --sla Premium bitdistiller.yaml :test_task "$job_name" --description "sacle-downstream_task-big_dataset_$model"
+        # amlt run --sla Standard mi300.yaml :test_task "$job_name" --description "test_all $model"
     done
 done

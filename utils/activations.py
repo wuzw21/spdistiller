@@ -83,7 +83,7 @@ class ActivationModule:
         histograms_path = os.path.join(self.file_path, f"layer_{layer_idx}", f"weight_{weight_idx}", "histograms.pt")
 
         # load histogram
-        histogram_data = torch.load(histograms_path, map_location='cpu')
+        histogram_data = torch.load(histograms_path, map_location='cpu',weights_only=True)
         histogram, bin_edges, bin_centers = histogram_data['histogram'], histogram_data['bin_edges'], histogram_data['bin_centers']
 
         plt.figure(figsize=(12, 8))

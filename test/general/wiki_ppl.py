@@ -6,8 +6,7 @@ import time
 from logging import getLogger
 from transformers import AutoTokenizer, LlamaTokenizer, AutoModelForCausalLM
 import sys
-sys.path.append("../")
-from test_utils import pseudo_quantize_model_weight
+from test.test_utils import pseudo_quantize_model_weight
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 print(project_root)
@@ -135,8 +134,8 @@ def main():
     parser.add_argument('--model', default='meta-llama/Llama-2-7b-hf', type=str) # quant base model
     parser.add_argument('--dev', type=str, default="cuda:1")
     parser.add_argument('--quant_type', type=str, default="int", help='Quantization data type')
-    parser.add_argument('--bits', type=int, default=3, help='Quantization bits')
-    parser.add_argument('--group_size', type=int, default=128, help='Quantization group size')
+    parser.add_argument('--bits', type=int, default=4, help='Quantization bits')
+    parser.add_argument('--group_size', type=int, default=64, help='Quantization group size')
 
     args = parser.parse_args()
     print(args)

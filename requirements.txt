@@ -1,25 +1,19 @@
-transformers==4.48.0
+numpy
+transformers==4.45.2
 datasets
 deepspeed==0.14.2
 sentencepiece
 tensorboardX
-accelerate==1.5.2
+accelerate
 
 einops
-importlib-resources
-jsonlines
-numexpr
-omegaconf
-pycountry
-pytablewriter
 rouge-score
 sacrebleu
 scikit-learn
 sqlitedict
-tqdm-multiprocess
 zstandard
 
-bitsandbytes
+bitsandbytes==0.44.0
 peft==0.15.0
 fraction
 wandb

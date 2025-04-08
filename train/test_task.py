@@ -70,7 +70,7 @@ def eval(
     task_manager = TaskManager()
     task_names = task_manager.match_tasks(task_list)
     task_num_fewshot = {
-        "agieval": 0,
+        "agieval": 3,
         "mmlu": 5,
         "arc_challenge": 25,
     }
@@ -130,6 +130,7 @@ def process_compressed_pred(compressed_pred, output_file, layer_idx, weight_idx)
 
 def debug_test(model):
     global_weight_preditor = model.predictor
+    print('DEBUG_CROSSLAYER', os.environ.get('DEBUG_CROSSLAYER','0'))
     if os.environ.get('DEBUG_CROSSLAYER','0') != '0' :
         print(f"Total elements: {global_weight_preditor.sparse_params[0]}")
         print(f"Zero elements: {global_weight_preditor.sparse_params[1]}")
@@ -158,8 +159,8 @@ def eval_for_sp_config(model_path, model, task_list, num_shot, batch_size, limit
     print("results")
     for result in results :
         print(result)
-    print('='*40)
     debug_test(model)
+    print('='*40)
     
 
 
@@ -192,10 +193,10 @@ def main():
     print('task_list',task_list)
     sp_configs = [(args.sparse, args.sparse, 0.00, args.do_cr)]
     if args.test_all:
-        sp_configs = [(0,0,0,0), (0.5,0.5,0,0), (0.6,0.6,0,0), (0.7,0.7,0,0), (0.8,0.8,0,0), (args.sparse, args.sparse, 0.00, args.do_cr)]
+        sp_configs = [(0,0,0,0), (0.5,0.5,0,0), (0.6,0.6,0,0), (0.7,0.7,0,0), (args.sparse, args.sparse, 0.00, args.do_cr)]
         sp_configs = list(set(sp_configs))
         
-    num_shots= [5]
+    num_shots= [args.num_shot]
     
     print('sp_configs: ',sp_configs)
     for sp_config in sp_configs:

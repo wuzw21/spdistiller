@@ -19,7 +19,7 @@ export LIMIT=$limit
 echo LIMIT $LIMIT
 export MODEL_PATH=${MODEL_PATH:-${MODEL_DIR}/${MODEL_NAME}}
 export THRESHOLD_PATH="${DATA_DIR}/threshold/${MODEL_NAME}/sparse-${SPARSE}.json"
-
+export DEBUG_CROSSLAYER=${DEBUG_CROSSLAYER:-0}
 ### =================================================================================== ###
 
 export EASY_TEST=1

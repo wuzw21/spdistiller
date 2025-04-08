@@ -16,6 +16,7 @@ sys.path.insert(0, project_root)
 print(project_root)
 from utils.sparse_hook import prepare_sparse_hook
 from utils.models import get_llm
+from quantization.qlinear import quant_and_dequant_model_q4_0
 
 
 def parse_args():

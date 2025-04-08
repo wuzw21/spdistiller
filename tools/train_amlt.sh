@@ -30,7 +30,7 @@ deepspeed --hostfile=hostfile_local --no_ssh --node_rank=0 \
     --gradient_checkpointing True \
     --load_best_model_at_end False \
     --save_strategy "epoch" \
-    --save_total_limit 3 \
+    --save_total_limit 2 \
     --weight_decay 0. \
     --logging_steps 1 \
     --learning_rate 1e-6 \

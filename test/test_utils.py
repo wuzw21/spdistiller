@@ -1,4 +1,4 @@
-
+import os
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -6,7 +6,10 @@ import bitsandbytes as bnb
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 import sys
 sys.path.append("../../quantization")
-from quantizer import *
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
+print(project_root)
+from quantization.quantizer import *
 
 # from ppq.core import CUDA
 def get_named_linears(module):

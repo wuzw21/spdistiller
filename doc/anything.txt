@@ -1,5 +1,6 @@
-https://sanbpx4p3idss6q.blob.core.windows.net/amulet/projects/wzw-gcrbitdistillerq4/
+pip install -U amlt --index-url https://msrpypi.azurewebsites.net/stable/leloojoo
 
+https://sanbpx4p3idss6q.blob.core.windows.net/amulet/projects/wzw-gcrbitdistillerq4/
 
 # export MODEL_NAME=Llama-2-7b-chat-hf
 # export MODEL_NAME=Meta-Llama-3-8B
