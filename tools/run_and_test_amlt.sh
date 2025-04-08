@@ -1,7 +1,7 @@
 #!/bin/bash
 export AMLT_MODE=1
 
-sparse_values=(0.6)
+sparse_values=(0.7)
 # sparse_values=(0.7)
 cr_values=(0)
 # model_name=Llama-2-7b-chat-hf
