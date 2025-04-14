@@ -5,7 +5,7 @@ cd train
 DATA_PATH=${DATA_DIR}/datasets/${MODEL_NAME}/${DATASET} 
 SAVE_PATH=${OUTPUT_DIR}/ckpts/${MODEL_NAME}
 LOGGING_DIR=${OUTPUT_DIR}/logs/${MODEL_NAME}
-
+echo "SAVE_PATH" $SAVE_PATH
 export MASTER_ADDR="localhost"
 export MASTER_PORT="1321"
 export GLOO_SOCKET_IFNAME="lo"
@@ -35,22 +35,24 @@ deepspeed --no_ssh --node_rank=0  \
     --seed 42 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
-    --gradient_accumulation_steps 1 \
-    --gradient_checkpointing True \
+    --gradient_accumulation_steps 2 \
+    --gradient_checkpointing False \
     --load_best_model_at_end False \
     --save_strategy "epoch" \
     --save_total_limit 5 \
     --logging_steps 1 \
-    --learning_rate 1e-7 \
+    --learning_rate 2e-4 \
     --report_to "none" \
+    --quant ${QUANT} \
     --bits 4 \
     --quant_type Q4_0 \
-    --q_group_size 64 \
-    --train_kd True \
+    --q_group_size 32 \
+    --train_kd False \
     --kd_loss_type "forward" \
     --max_train_samples 999999 \
     --evaluation_strategy "epoch" \
-    --use_lora False \
+    --use_lora ${USE_LORA} \
     --load_checkpoint False
 
 cd ..
+ 

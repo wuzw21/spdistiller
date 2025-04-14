@@ -157,6 +157,7 @@ def quant_and_dequant_model_q4_0(model):
             weight = None
             from_weights_map = False
             hf_hook = getattr(subset[name], "_hf_hook", None)
+            # print('hf_hook',hf_hook)
             if hf_hook is not None:
                 weights_map = getattr(hf_hook, "weights_map", None)
                 if weights_map is not None:
@@ -174,8 +175,10 @@ def quant_and_dequant_model_q4_0(model):
             else:
                 do_transpose = False
 
-            quant_and_dequant_tensor_q4_0_v2(weight, do_transpose)
+            new_weight = quant_and_dequant_tensor_q4_0_v2(weight, do_transpose)
 
             if from_weights_map:
                 weights_map["weight"] = weight.to("cpu")
+            else:
+                subset[name].weight.data = new_weight
 

@@ -1,16 +1,19 @@
 
 sparse_values=(0.5)
 cr_values=(0)
-model_name=Llama-2-7b-chat-hf
+model_name=Meta-Llama-3-8B
 sparse_strategy=Static
-test_task=mmlu,wikitext,gsm8k,agieval,arc_easy,arc_challenge,piqa
+# test_task=mmlu,wikitext,gsm8k,agieval,arc_easy,arc_challenge,piqa
+test_task=mmlu,wikitext
 test_all=0
 # TASK_MODEL_NAME=wac8k-cakld-4bit-80G4A100
-# TASK_MODEL_NAME=q4_distillation-lr_1e-6
-TASK_MODEL_NAME=Testall
-tasks_array=test
+TASK_MODEL_NAME=lora_all_blocks
+# TASK_MODEL_NAME=Testall
+tasks_array=train
 limit=-1
-
+# MODEL_PATH=/mnt/default/projects/wzw-gcrbitdistillerq4/amlt-results/7256335118.30947-8a23b391-3e32-4ca4-a04a-6ab87ed3565d/ckpts/Meta-Llama-3-8B/int4-g64
+QUANT=0
+# USE_LORA=1
 if [ "$model_name" = "Meta-Llama-3-8B" ] || [ "$model_name" = "Llama-2-7b-chat-hf" ] || [ "$model_name" = "Llama-2-13b-chat-hf" ]; then
     dataset="mix_alpaca_c4_9000.json"
 else
@@ -20,7 +23,7 @@ fi
 
 log_params() {
     local log_file="./tools/params_temp.env"  # 日志文件路径
-    local params=("job_name" "tasks_array" "model_name" "sparse" "do_cr" "sparse_strategy" "test_task" "test_all" "dataset" "limit")  # 参数列表
+local params=("job_name" "tasks_array" "model_name" "sparse" "do_cr" "sparse_strategy" "test_task" "test_all" "dataset" "limit" "MODEL_PATH" "QUANT" "USE_LORA")  # 参数列表
 
     # 清空日志文件
     > "$log_file"
@@ -40,9 +43,9 @@ for sparse in "${sparse_values[@]}"; do
 
         log_params
         
-        # amlt map --sla Premium bitdistiller.yaml :test_task "$job_name" :gcrbitdistiller --description "big_dataset_$model"
-        # amlt run --sla Premium bitdistiller.yaml :gcr_bitdistiller "$job_name" --description "${model}_train_1e-6"
-        amlt run --sla Premium bitdistiller.yaml :test_task "$job_name" --description "sacle-downstream_task-big_dataset_$model"
+        # amlt map --sla Premium bitdistiller.yaml :gcr_test_task "$job_name" :gcrbitdistiller --description "big_dataset_$model"
+        amlt run --sla Premium bitdistiller.yaml :gcr_bitdistiller "$job_name" --description "${model}_train_1e-6"
+        # amlt run --sla Premium bitdistiller.yaml :gcr_test_task "$job_name" --description "sacle-downstream_task-big_dataset_$model"
         # amlt run --sla Standard mi300.yaml :test_task "$job_name" --description "test_all $model"
     done
 done

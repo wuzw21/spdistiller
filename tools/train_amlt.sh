@@ -27,23 +27,23 @@ deepspeed --hostfile=hostfile_local --no_ssh --node_rank=0 \
     --per_device_train_batch_size 4 \
     --per_device_eval_batch_size 4 \
     --gradient_accumulation_steps 8 \
-    --gradient_checkpointing True \
+    --gradient_checkpointing False \
     --load_best_model_at_end False \
     --save_strategy "epoch" \
     --save_total_limit 2 \
     --weight_decay 0. \
     --logging_steps 1 \
-    --learning_rate 1e-6 \
+    --learning_rate 0.0002 \
     --report_to "none" \
+    --quant ${QUANT} \
     --bits 4 \
     --quant_type Q4_0 \
-    --q_group_size 64 \
-    --train_kd True \
-    --kd_loss_type "cakld" \
+    --q_group_size 32 \
+    --train_kd False \
+    --kd_loss_type "forward" \
     --max_train_samples 999999 \
-    --evaluation_strategy "no" \
-    --eval_steps 2000 \
-    --use_lora False \
-    --load_checkpoint True
+    --evaluation_strategy "epoch" \
+    --use_lora ${USE_LORA} \
+    --load_checkpoint False
 
 cd ..

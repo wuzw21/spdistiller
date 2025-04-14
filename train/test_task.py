@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 from torch.autograd import Function
-from transformers import AutoModelForCausalLM
+from transformers import AutoModelForCausalLM,AutoTokenizer
 from accelerate import infer_auto_device_map, dispatch_model
 import sys
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -16,7 +16,9 @@ print(project_root)
 from utils.sparse_hook import prepare_sparse_hook
 from utils.models import get_llm
 from quantization.qlinear import quant_and_dequant_model_q4_0
+from train.utils import make_supervised_data_module, smart_tokenizer_and_embedding_resize
 
+from peft import PeftModel
 
 def str_to_list(value):
     return value.split(',')
@@ -35,6 +37,8 @@ def parse_args():
     parser.add_argument('--batch_size', type=int, default=1, help='Number of test samples.')
     parser.add_argument('--test_all',type=int,default=0)
     parser.add_argument('--quant',type=int,default=0)
+    parser.add_argument('--use_lora',type=int,default=0)
+    parser.add_argument('--lora_checkpoint', type=str, default="", help='LLaMA model.')
     args = parser.parse_args()
     print('-'*40)
     print("Parsed arguments:")
@@ -174,6 +178,26 @@ def main():
     print(f"loading llm model {args.model}")
     model = get_llm(args.model)
     prepare_sparse_hook(model)
+
+    # for train: load smart eos
+    # use lora
+    if args.use_lora :
+        DEFAULT_PAD_TOKEN = "[PAD]"
+        tokenizer = AutoTokenizer.from_pretrained(args.model)
+        if tokenizer.pad_token is None:
+            print("tokenizer has not padding token")
+            smart_tokenizer_and_embedding_resize(
+                special_tokens_dict=dict(pad_token=DEFAULT_PAD_TOKEN),
+                tokenizer=tokenizer,
+                model=model,
+            )
+        print("Loading LoRA adapter weights ...")
+        # 此函数会将基础模型包装成一个 PEFT 模型，并加载保存的 LoRA 参数文件
+        model = PeftModel.from_pretrained(model, args.lora_checkpoint)
+        model = model.merge_and_unload()
+        print(model)
+
+    
     model.eval()
 
     # TODO: add quant qrgs

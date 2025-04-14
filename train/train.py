@@ -60,6 +60,7 @@ class DataArguments:
     
 @dataclass
 class TrainingArguments(transformers.TrainingArguments):
+    logging_dir: str = field(default="logs")
     cache_dir: Optional[str] = field(default=None)
     optim: str = field(default="adamw_torch")
     model_max_length: int = field(
@@ -83,7 +84,8 @@ class TrainingArguments(transformers.TrainingArguments):
         metadata={"help": "Evaluation strategy to adopt during training. Options: 'no', 'steps', 'epoch'."}
     )
     eval_steps: int = field(default=500, metadata={"help": "Number of update steps between two evaluations."})
-    use_lora: bool = field(default=False, metadata={"help": "Whether to use LoRA for fine-tuning."})
+    quant : int= field(default=0, metadata={"help": "Whether to use quantization."})
+    use_lora: int = field(default=0, metadata={"help": "Whether to use LoRA for fine-tuning."})
     load_checkpoint: bool = field(default=False, metadata={"help": "Whether to load checkpoint."})
 
 def safe_save_model_for_hf_trainer(trainer: transformers.Trainer, output_dir: str):
@@ -118,6 +120,23 @@ def train():
         global_weight_preditor.set_do_pre_prediction(do_cr)
         global_weight_preditor.set_sparsity_threshold(data_args.threshold_path)
 
+    print('use_lora', training_args.use_lora)
+    if training_args.use_lora:
+        print("Applying LoRA fine-tuning...")
+        model = prepare_model_for_kbit_training(model)
+        lora_config = LoraConfig(
+            r=32,
+            lora_alpha=16,
+            lora_dropout=0.1,
+            target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+            # target_modules=["q_proj"],
+            bias="none",
+            task_type="CAUSAL_LM",
+        )
+        model = get_peft_model(model, lora_config)
+        model.print_trainable_parameters()
+
+    
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         model_args.model_name_or_path,
         cache_dir=training_args.cache_dir,
@@ -143,31 +162,19 @@ def train():
     data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
 
     # load quantization if specified
-    if training_args.quant_type is not None:
-        print("converting the model to qat, this may take a while...")
-        model, _ = convertModelToQuant(model, compute_dtype=torch.bfloat16, quant_type=training_args.quant_type, q_group_size=training_args.q_group_size)
-    if training_args.clip is not None:
-        q_config = {"zero_point": True, "q_group_size": training_args.q_group_size}
-        print("Loading pre-computed Clipping results from", training_args.clip)
-        clip_results = torch.load(training_args.clip)
-        apply_clip(model, clip_results)
-        print("Clipping init successfully!")
-        
-    if training_args.use_lora:
-        model = prepare_model_for_kbit_training(model)
-        lora_config = LoraConfig(
-            r=32,
-            lora_alpha=16,
-            lora_dropout=0.1,
-            # target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-            target_modules=["q_proj"],
-            bias="none",
-            task_type="CAUSAL_LM",
-        )
-        model = get_peft_model(model, lora_config)
-        model.print_trainable_parameters()
-
-        print("Applying LoRA fine-tuning...")
+    if training_args.quant:
+        print('begin quantization')
+        if training_args.quant_type is not None:
+            print("converting the model to qat, this may take a while...")
+            model, _ = convertModelToQuant(model, compute_dtype=torch.bfloat16, quant_type=training_args.quant_type, q_group_size=training_args.q_group_size)
+        if training_args.clip is not None:
+            q_config = {"zero_point": True, "q_group_size": training_args.q_group_size}
+            print("Loading pre-computed Clipping results from", training_args.clip)
+            clip_results = torch.load(training_args.clip)
+            apply_clip(model, clip_results)
+            print("Clipping init successfully!")
+    else :
+        print("No quantization is used, using the original model")
     
     # load teacher model if KD training is enabled (assume LoRA and KD are mutually exclusive)
     if training_args.train_kd:
@@ -237,6 +244,7 @@ def train():
     # for param in model.parameters():
     #     param.requires_grad = True
     print('begin training')
+    print('load_checkpoint', training_args.load_checkpoint)
     if training_args.load_checkpoint :
         resume_ckpt = get_last_checkpoint(training_args.output_dir)
         print('resume_ckpt', resume_ckpt)
@@ -244,8 +252,11 @@ def train():
     else :
         trainer.train()
     print('finish training')
-
-    safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)
+    if training_args.use_lora:
+        print("Saving LoRA weights...")
+        model.save_pretrained(training_args.output_dir)
+    else :
+        safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)
 
 if __name__ == "__main__":
     train()

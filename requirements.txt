@@ -1,10 +1,10 @@
-numpy
 transformers==4.45.2
 datasets
-deepspeed==0.14.2
+deepspeed==0.15.4
+torch==2.1.0
 sentencepiece
 tensorboardX
-accelerate
+accelerate==1.6.0
 
 einops
 rouge-score
@@ -14,7 +14,7 @@ sqlitedict
 zstandard
 
 bitsandbytes==0.44.0
-peft==0.15.0
+peft==0.13.1
 fraction
 wandb
 matplotlib

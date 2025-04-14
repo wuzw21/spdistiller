@@ -13,4 +13,6 @@ python train/test_task.py \
     --limit=${LIMIT:--1} \
     --num_shot=5 \
     --batch_size=1 \
-    --quant=1 
+    --quant=${QUANT} \
+    --use_lora=${USE_LORA} \
+    --lora_checkpoint=${LORA_CHECKPOINT}
