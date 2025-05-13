@@ -8,7 +8,6 @@ import torch.nn as nn
 from tqdm import tqdm
 from torch.autograd import Function
 from transformers import AutoModelForCausalLM,AutoTokenizer
-from accelerate import infer_auto_device_map, dispatch_model
 import sys
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
@@ -74,7 +73,7 @@ def eval(
     task_manager = TaskManager()
     task_names = task_manager.match_tasks(task_list)
     task_num_fewshot = {
-        "agieval": 3,
+        "agieval": 0,
         "mmlu": 5,
         "arc_challenge": 25,
     }
@@ -92,6 +91,7 @@ def eval(
                 use_cache=None,
                 limit=limit,
                 check_integrity=False,
+                verbosity='ERROR'
             )
         except Exception as e:
             print(f"Task '{task_name}' testing failed: {e}")
@@ -141,6 +141,28 @@ def debug_test(model):
         print(f"Zero ratio: {global_weight_preditor.sparse_params[1] / global_weight_preditor.sparse_params[0]:.4f}")
         with open('test_crosslayer.txt', 'w') as f:
             pass  # 清空文件内容
+        predictor = model.predictor
+        for layer_idx in range(predictor.num_layers):
+            for weight_idx in range(predictor.weight_counters[layer_idx]):
+                if predictor.preds[layer_idx][weight_idx] != []:
+                    size = len(predictor.preds[layer_idx][weight_idx][0])
+                    metric = np.zeros((size, size))
+                    print(predictor.preds[layer_idx][weight_idx])
+                    for i in range(len(predictor.preds[layer_idx][weight_idx])):
+                        if predictor.preds[layer_idx][weight_idx][i] is not None:
+                            pred = predictor.preds[layer_idx][weight_idx][i]
+                            print(pred)
+                            for j in range(size):
+                                for k in range(size):
+                                    if pred.item(j) == pred.item(k):
+                                        metric[j][k] += 1
+                    metric = metric / len(predictor.preds[layer_idx][weight_idx])
+                    metric = np.triu(metric, k=1)
+                    print(f"Layer {layer_idx}, Weight {weight_idx}:")
+                    print(f"Metric shape: {metric.shape}")
+                    print(f"Metric: {metric}")
+                    print("-" * 40)
+                    
 
 
 def eval_for_sp_config(model_path, model, task_list, num_shot, batch_size, limit, sp_config, threshold_path, strategy):
@@ -179,6 +201,9 @@ def main():
     model = get_llm(args.model)
     prepare_sparse_hook(model)
 
+    # TODO: add quant qrgs
+    if args.quant:
+        quant_and_dequant_model_q4_0(model)
     # for train: load smart eos
     # use lora
     if args.use_lora :
@@ -192,17 +217,17 @@ def main():
                 model=model,
             )
         print("Loading LoRA adapter weights ...")
-        # 此函数会将基础模型包装成一个 PEFT 模型，并加载保存的 LoRA 参数文件
+        # wrapper fpr Lora
         model = PeftModel.from_pretrained(model, args.lora_checkpoint)
-        model = model.merge_and_unload()
         print(model)
+        for name, module in model.named_modules():
+            if "q_proj" not in name:
+                module.requires_grad = False
+        model = model.merge_and_unload()
 
     
     model.eval()
 
-    # TODO: add quant qrgs
-    if args.quant:
-        quant_and_dequant_model_q4_0(model)
 
     print("task: eval")
     
@@ -217,7 +242,7 @@ def main():
     print('task_list',task_list)
     sp_configs = [(args.sparse, args.sparse, 0.00, args.do_cr)]
     if args.test_all:
-        sp_configs = [(0,0,0,0), (0.5,0.5,0,0), (0.6,0.6,0,0), (0.7,0.7,0,0), (args.sparse, args.sparse, 0.00, args.do_cr)]
+        sp_configs = [(0,0,0,0), (0.5,0.5,0,0), (0.6,0.6,0,0), (0.7,0.7,0,0), (0.8,0.8,0,0),(args.sparse, args.sparse, 0.00, args.do_cr)]
         sp_configs = list(set(sp_configs))
         
     num_shots= [args.num_shot]

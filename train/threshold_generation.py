@@ -132,10 +132,10 @@ def main():
     tokenizer.pad_token = tokenizer.eos_token
     # build histograms
     dataset = get_dataset(
-        "tatsu-lab/alpaca",
-        subset=None,
+        "wikitext",
+        subset="wikitext-2-v1",
         split="train",
-        size=200
+        size=300,
     )
     text = ""
     for sample in tqdm(dataset):

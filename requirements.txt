@@ -2,6 +2,7 @@ transformers==4.45.2
 datasets
 deepspeed==0.15.4
 torch==2.1.0
+torchvision==0.16.0
 sentencepiece
 tensorboardX
 accelerate==1.6.0

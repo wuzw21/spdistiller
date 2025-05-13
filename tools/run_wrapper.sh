@@ -55,13 +55,26 @@ for task in "${params_array[@]}"; do
     elif [[ $task =~ "chat" ]]; then
         bash tools/chat.sh
     elif [[ $task =~ "train" ]]; then
-        bash tools/train.sh
+        if [ "$AMLT_MODE" -eq 1 ]; then
+            bash tools/train_amlt.sh    
+        else 
+            bash tools/train.sh
+        fi
         export MODEL_DIR=${OUTPUT_DIR}/ckpts
-        if USE_LORA=1; then
+        if [ "$USE_LORA" -eq 1 ]; then
             export LORA_CHECKPOINT=${MODEL_DIR}/${MODEL_NAME}
         else
             export MODEL_PATH=${MODEL_DIR}/${MODEL_NAME}
         fi
+        # test wikitext
+        export TEST_TASK=wikitext
+        export TEST_ALL=1
+        export LIMIT=-1
+        bash tools/test_task.sh
+        export TEST_TASK=$test_task
+        export TEST_ALL=$test_all
+        export LIMIT=$dataset
+        # test task
         bash tools/test_task.sh
     fi
 done

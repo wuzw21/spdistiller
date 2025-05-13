@@ -79,7 +79,7 @@ def prepare_sparse_hook(model) :
     print("Filtered model elements weight-name / weight-id")
     for elem in filtered:
         print('weight_id', elem[2], 'weight_name: ', elem[1])
-    #   print(weight_map)
+    print(model.predictor)
 
 def set_sparse_infer(model, s=1) :
     model.predictor.set_sparse_infer(s)

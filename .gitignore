@@ -71,7 +71,7 @@ cover/
 logs/
 plt/
 doc/
-wandb
+wandb/
 tools/params_temp.env
 tools/run_and_test_amlt.sh
 tools/train_amlt.sh

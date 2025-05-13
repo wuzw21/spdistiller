@@ -6,7 +6,7 @@ target:
   workspace_name: srgxws@srgx
 
 environment:
-  image: amlt-sing/acpt-2.2.2-py3.10-cuda12.1
+  image: amlt-sing/acpt-torch2.3.1-py3.10-cuda12.1-ubuntu22.04
   setup:
     - bash tools/prepare.sh
 

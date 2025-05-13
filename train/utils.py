@@ -80,9 +80,9 @@ class SupervisedDataset(Dataset):
             self.sources, self.targets = self.sources[split_num:], self.targets[split_num:]
             print(f"Using {len(self.sources)} samples to train")
 
-            print("Example Data")
-            print("sources: \n", self.sources[0])
-            print("targets: \n", self.targets[0])
+            # print("Example Data")
+            # print("sources: \n", self.sources[0])
+            # print("targets: \n", self.targets[0])
 
         elif split == "eval":
             self.sources, self.targets = self.sources[:split_num], self.targets[:split_num]

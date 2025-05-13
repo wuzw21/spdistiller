@@ -39,7 +39,7 @@ def get_llm(model_path):
         model_path, 
         torch_dtype="auto",
         low_cpu_mem_usage=True,
-        device_map="balanced",
+        device_map="auto",
         trust_remote_code=True
     )
 

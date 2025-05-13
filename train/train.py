@@ -119,6 +119,7 @@ def train():
         global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
         global_weight_preditor.set_do_pre_prediction(do_cr)
         global_weight_preditor.set_sparsity_threshold(data_args.threshold_path)
+        print('sparse: ', attn_sp, mlp_sp , w_p)
 
     print('use_lora', training_args.use_lora)
     if training_args.use_lora:

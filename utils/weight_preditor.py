@@ -55,7 +55,7 @@ class WeightPredictor(object):
         self.do_pre_prediction = 0
 
         # CROSS_LAYER_TEST
-        self.preds = [[None for _ in range(self.weight_counters[layer_id])] for layer_id in range(self.num_layers)]
+        self.preds = [[[] for _ in range(self.weight_counters[layer_id])] for layer_id in range(self.num_layers)]
         self.wmetrics = [[None for _ in range(self.weight_counters[layer_id])] for layer_id in range(self.num_layers)]
         self.similarity_results = [[] * self.weight_counters[_] for _ in range(self.num_layers)]
 
@@ -176,11 +176,19 @@ class WeightPredictor(object):
                 self.sparse_params[0] += total_elements
                 self.sparse_params[1] += zero_elements
 
+                # TODO : 计算pred中1值出现的协方差，记录到self.debug_pred[ilayer][iweight]里
+                # if ilayer == 1 and iweight == 0:
+                    # print(pred.size(),pred,x.size(),x)
+                
+                
+
                 # zero_ratio = zero_elements / total_elements
                 # print(f"Layer {ilayer}, Weight {iweight}: Zero ratio in pred = {zero_ratio:.4f}")
 
-
+            # print(os.environ.get('BACKWARD_STRATEGY'))
+            # return self.apply_pred(x, pred)
             if os.environ.get('BACKWARD_STRATEGY','0') != '0' :
+                # print('yes')
                 return self.apply_pred(x, pred)
             else : 
                 return STEFunction.apply(x, pred)

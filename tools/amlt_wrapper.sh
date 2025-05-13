@@ -7,5 +7,6 @@ if [ -n "${AMLT_MAP_INPUT_DIR}" ]; then
 else
     export MODEL_DIR=${AMLT_DATA_DIR}/models
 fi
+export AMLT_MODE=1
 
 bash tools/run_wrapper.sh
