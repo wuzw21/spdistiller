@@ -89,11 +89,14 @@ class TrainingArguments(transformers.TrainingArguments):
     load_checkpoint: bool = field(default=False, metadata={"help": "Whether to load checkpoint."})
 
 def safe_save_model_for_hf_trainer(trainer: transformers.Trainer, output_dir: str):
+    """save model for hf trainer"""
+    # save model
+    # trainer.save_model(output_dir)
     state_dict = trainer.model.state_dict()
-    if trainer.args.should_save:
-        cpu_state_dict = {key: value.cpu() for key, value in state_dict.items()}
-        del state_dict
-        trainer._save(output_dir, state_dict=cpu_state_dict)
+    # if trainer.args.should_save:
+    cpu_state_dict = {key: value.cpu() for key, value in state_dict.items()}
+    del state_dict
+    trainer._save(output_dir, state_dict=cpu_state_dict)
         
 def train():
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
@@ -118,7 +121,7 @@ def train():
         attn_sp, mlp_sp, w_p, do_cr = get_sparsity_configs()
         global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
         global_weight_preditor.set_do_pre_prediction(do_cr)
-        global_weight_preditor.set_sparsity_threshold(data_args.threshold_path)
+        global_weight_preditor.set_sparsity_threshold(attn_sp, data_args.threshold_path)
         print('sparse: ', attn_sp, mlp_sp , w_p)
 
     print('use_lora', training_args.use_lora)

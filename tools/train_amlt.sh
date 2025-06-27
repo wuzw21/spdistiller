@@ -11,7 +11,7 @@ export MASTER_PORT="1321"
 export GLOO_SOCKET_IFNAME="lo"
 export NCCL_SOCKET_IFNAME="lo"
 export WANDB_DISABLED=true
-BACKWARD_STRATEGY=1
+# export BACKWARD_STRATEGY=1
 deepspeed --hostfile=hostfile_local --no_ssh --node_rank=0 \
     --master_addr=${MASTER_ADDR} --master_port=${MASTER_PORT} train.py \
     --deepspeed config/zero.json \
@@ -24,26 +24,27 @@ deepspeed --hostfile=hostfile_local --no_ssh --node_rank=0 \
     --num_train_epochs 2 \
     --model_max_length 512 \
     --bf16 True \
-    --per_device_train_batch_size 4 \
-    --per_device_eval_batch_size 4 \
+    --per_device_train_batch_size 8 \
+    --per_device_eval_batch_size 8 \
     --gradient_accumulation_steps 8 \
     --gradient_checkpointing True \
     --load_best_model_at_end False \
-    --save_strategy "epoch" \
+    --save_strategy "steps" \
+    --save_steps 500 \
     --save_total_limit 2 \
     --weight_decay 0. \
     --logging_steps 1 \
-    --learning_rate 8e-6 \
+    --learning_rate 1e-6 \
     --report_to "none" \
     --quant ${QUANT} \
     --bits 4 \
     --quant_type Q4_0 \
     --q_group_size 32 \
-    --train_kd False \
-    --kd_loss_type "cakld" \
+    --train_kd True \
+    --kd_loss_type "forward" \
     --max_train_samples 999999 \
     --evaluation_strategy "epoch" \
     --use_lora ${USE_LORA} \
-    --load_checkpoint False
+    --load_checkpoint True
 
 cd ..

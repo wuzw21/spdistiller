@@ -24,9 +24,14 @@ class ActivationModule:
 
     # TODO: optimize this function
     def fd_th(self, weight, sp) :
-        tensor = weight.flatten().cpu().numpy()  
-        threshold = np.percentile(tensor, q=sp*100)
-        return threshold.item()        
+        tensor = weight.flatten().cpu().numpy()
+        print(weight.size())
+        thres = weight.sort(dim=-1).values[:, :, int(weight.shape[-1] * sp)].view(weight.shape[0], weight.shape[1], 1)
+        threshold = np.percentile(tensor, q=sp*100).item()
+        new_thres = thres.mean().item()
+        print('difference', new_thres, threshold)
+        return thres.mean().item()
+        return threshold
 
     def fd_th_by_histogram(self, histogram, sp) :
         bin_centers = histogram["bin_centers"]
@@ -179,6 +184,7 @@ class ActivationModule:
             for weight_idx in range(self.num_weights):
                 layer_path = os.path.join(self.file_path, f"layer_{layer_idx}", f"weight_{weight_idx}")
                 if self.histograms_only == False :
+                    # print('find_threshold: ', layer_idx, weight_idx)
                     activations_path = os.path.join(layer_path, "activations.pt")
                     weight = torch.load(activations_path)
                     threshold = self.fd_th(torch.abs(weight), sp)

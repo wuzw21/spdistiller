@@ -33,7 +33,7 @@ jobs:
     env:
       NCCL_DEBUG: info
       _AZUREML_SINGULARITY_JOB_UAI: /subscriptions/e546c811-2312-46e2-9fd0-c949c65da4d9/resourcegroups/srgx/providers/Microsoft.ManagedIdentity/userAssignedIdentities/srgxuai
-- name: gcr_test_task
+- name: gcr_test_task_2
   sku: 80G1-A100
   command:
     - bash tools/amlt_wrapper.sh

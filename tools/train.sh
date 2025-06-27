@@ -1,5 +1,6 @@
 #!/bin/bash
-
+export DEBUG_CROSSLAYER=${DEBUG_CROSSLAYER:-0}
+echo $DEBUG_CROSSLAYER
 cd train
 
 DATA_PATH=${DATA_DIR}/datasets/${MODEL_NAME}/${DATASET} 
@@ -31,7 +32,7 @@ deepspeed --no_ssh --node_rank=0  \
     --model_max_length 512 \
     --output_dir ${SAVE_PATH} \
     --logging_dir ${LOGGING_DIR} \
-    --num_train_epochs 5 \
+    --num_train_epochs 2 \
     --bf16 True \
     --seed 42 \
     --per_device_train_batch_size 1 \
@@ -39,7 +40,8 @@ deepspeed --no_ssh --node_rank=0  \
     --gradient_accumulation_steps 2 \
     --gradient_checkpointing False \
     --load_best_model_at_end False \
-    --save_strategy "epoch" \
+    --save_strategy "steps" \
+    --save_steps 500 \
     --save_total_limit 5 \
     --logging_steps 1 \
     --learning_rate 2e-4 \
@@ -53,7 +55,7 @@ deepspeed --no_ssh --node_rank=0  \
     --max_train_samples 999999 \
     --evaluation_strategy "epoch" \
     --use_lora ${USE_LORA} \
-    --load_checkpoint False
+    --load_checkpoint True
 
 cd ..
  

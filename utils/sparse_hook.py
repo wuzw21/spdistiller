@@ -14,11 +14,12 @@ def get_sparsity_configs():
 
 
 def sparse_hook(module, input, predictor, layer_id, weight_id):
-    # print(input)
+    # print('1',input)
     if predictor == None:
         return input
     else :
         sp_x = predictor.generate_pred(layer_id, weight_id, input[0])
+        # print('2',sp_x)
         return sp_x  
 
 def get_layer_id_from_prefix(prefix) -> int:

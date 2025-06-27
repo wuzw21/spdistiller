@@ -5,8 +5,8 @@ export OMP_NUM_THREADS=16
 NUM_GPUS=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
 echo "NUM_GPUS" $NUM_GPUS
 
-datasets=("alpaca" "wikitext" "c4")
-max_sample=8
+datasets=("code" "math")
+max_sample=50000
 batch_size=1
 # TODO: fix temperature
 temperature=0.7

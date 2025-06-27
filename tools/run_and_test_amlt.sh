@@ -1,23 +1,27 @@
 
-sparse_values=(0.6 0.7 0.8)
+sparse_values=(0.8)
 cr_values=(0)
+tasks_array=test
 model_name=Meta-Llama-3-8B
-sparse_strategy=Static
+# model_name=Mixtral-8x7B-Instruct
+# model_name=Qwen2.5-0.5B-Instruct
+sparse_strategy=Dynamic
 # test_task=mmlu,wikitext,gsm8k,agieval,arc_easy,arc_challenge,piqa
-test_task=wikitext
-test_all=1
-TASK_MODEL_NAME=static_all_blocks_c4_finetune_no_ste
+test_task=mmlu
+test_all=0
+TASK_MODEL_NAME=dynamic_all_blocks_c4_distill
 # TASK_MODEL_NAME=Testall
-tasks_array=train
 limit=-1
 # MODEL_PATH=/mnt/default/projects/wzw-gcrbitdistillerq4/amlt-results/7256335118.30947-8a23b391-3e32-4ca4-a04a-6ab87ed3565d/ckpts/Meta-Llama-3-8B/int4-g64
 QUANT=0
 USE_LORA=0
 if [ "$model_name" = "Meta-Llama-3-8B" ] || [ "$model_name" = "Llama-2-7b-chat-hf" ] || [ "$model_name" = "Llama-2-13b-chat-hf" ]; then
     dataset="c4_processed.json"
+    # dataset="math.json"
     # dataset="mix_alpaca_c4_9000.json"
 else
-    dataset="mix_wikitext_alpaca_c4_15000.json"
+    dataset="c4_processed.json"
+    # dataset="mix_wikitext_alpaca_c4_15000.json"
 fi
 # dataset="mix_wikitext_alpaca_c4_15000.json"
 
@@ -43,9 +47,9 @@ for sparse in "${sparse_values[@]}"; do
 
         log_params
         
-        # amlt map --sla Premium bitdistiller.yaml :gcr_test_task "$job_name" :gcr_bitdistiller --description "lora+$model"
-        amlt run --sla Premium bitdistiller.yaml :gcr_bitdistiller "$job_name"
+        amlt map --sla Premium bitdistiller.yaml :gcr_test_task_2 "$job_name" :gcr_bitdistiller --description "distill+$model"
+        # amlt run --sla Premium bitdistiller.yaml :gcr_test_task "$job_name"
         # amlt run --sla Premium bitdistiller.yaml :gcr_test_task "$job_name" --description "sacle-downstream_task-big_dataset_$model"
-        # amlt run --sla Standard mi300.yaml :test_task "$job_name" --description "test_all $model"
+        # amlt run --sla Standard mi300.yaml :gcr_bitdistiller "$job_name" --description "test_all $model"
     done
 done

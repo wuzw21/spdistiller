@@ -18,7 +18,7 @@ for CHECKPOINT_DIR in $CHECKPOINT_DIRS; do
         --limit=${LIMIT:--1} \
         --num_shot=5 \
         --batch_size=1 \
-        --quant=1
+        --quant=${QUANT:-0}
     
     echo "Finished processing checkpoint directory: $CHECKPOINT_DIR"
 done

@@ -30,29 +30,39 @@ OPENORCA_PROMPT_DICT_SOLAR = {
 
 ULTRA_PROMPT_DICT_SOLAR = {
     "prompt_no_input": (
-        "### User: \n{prompt}\n\n### Assistant:\n"
+        "{prompt}"
     )
 }
 
 CODE_PROMPT_DICT = {
+    # "prompt_input": (
+    #     "Below is an instruction that describes a task, paired with an input that provides further context. "
+    #     "Write a response that appropriately completes the request.\n\n"
+    #     "### Instruction:\n{instruction}\n\n### Input:\n{input}\n\n### Response:"
+    # ),
+    # "prompt_no_input": (
+    #     "Below is an instruction that describes a task. "
+    #     "Write a response that appropriately completes the request.\n\n"
+    #     "### Instruction:\n{instruction}\n\n### Response:"
+    # )
     "prompt_input": (
-        "Below is an instruction that describes a task, paired with an input that provides further context. "
-        "Write a response that appropriately completes the request.\n\n"
-        "### Instruction:\n{instruction}\n\n### Input:\n{input}\n\n### Response:"
+        "{instruction}\n{input}\n"
     ),
     "prompt_no_input": (
-        "Below is an instruction that describes a task. "
-        "Write a response that appropriately completes the request.\n\n"
-        "### Instruction:\n{instruction}\n\n### Response:"
-    )
+        "{instruction}\n"
+    ),
 }
 
 MATH_PROMPT_DICT = {
+    # "prompt_no_input": (
+    #     "Below is an instruction that describes a task. "
+    #     "Write a response that appropriately completes the request.\n\n"
+    #     "### Instruction:\n{query}\n\n### Response: Let's think step by step."
+    # )
     "prompt_no_input": (
-        "Below is an instruction that describes a task. "
-        "Write a response that appropriately completes the request.\n\n"
-        "### Instruction:\n{query}\n\n### Response: Let's think step by step."
+        "{query}\n"
     )
+    # "prompt_no_input": (
 }
 
 
@@ -87,6 +97,9 @@ def extract_random_dataset(sources, targets, max_sample=None):
             random_indices = random.sample(range(len(sources)), max_sample)
             sources = [sources[i] for i in random_indices]
             targets = [targets[i] for i in random_indices]
+            print("sampled sources and targets:")
+            print(sources[0])
+            print(targets[0])
         else:
             print("max_sample exceeds the length of the array. Using the entire array.")
             sources = sources

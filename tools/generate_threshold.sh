@@ -7,7 +7,6 @@ python train/threshold_generation.py \
     --limit=100 \
     --num_shot=0 \
     --file_path=${OUTPUT_DIR}/threshold/${MODEL_NAME}-all \
-    --sparse=0 \
-    --do_generation \
+    --sparse=${SPARSE} \
     --save_activations \
-    --test_all=1
+    --test_all=${TEST_ALL}

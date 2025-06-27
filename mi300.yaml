@@ -8,7 +8,7 @@ target:
 environment:
   image: amlt-sing/acpt-rocm6.1_ubuntu20.04_py3.9_pytorch2.1.2
   setup:
-    - bash tools/prepare.sh
+    - bash tools/prepare_rocm.sh
 
 code:
   local_dir: /home/donglinbai/Projects/wzw/BitDistiller-Q4_0/
@@ -18,11 +18,10 @@ data:
   remote_dir: gcrbitdistillerdata/
 # list of jobs to run, we run 2 jobs in this example
 jobs:
-- name: gcr_wrapper
-  sku: 192G2-MI300X-IB-xGMI
+- name: gcr_bitdistiller
+  sku: 192G1-MI300X-IB-xGMI
   command:
   - bash tools/amlt_wrapper.sh $EXTRA_ARGS
-  - sleep infinity
   mpi: False
   process_count_per_node: 0
   identity: managed

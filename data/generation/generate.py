@@ -168,7 +168,7 @@ def main(rank, args):
     if global_weight_preditor is not None:
         attn_sp, mlp_sp, w_p, do_cr = get_sparsity_configs()
         global_weight_preditor.set_sp_config(attn_sp, mlp_sp, w_p)
-        global_weight_preditor.set_sparsity_threshold(args.threshold_path)
+        global_weight_preditor.set_sparsity_threshold(attn_sp, args.threshold_path)
     model.config._attn_implementation = "eager"
     
     tokenizer = AutoTokenizer.from_pretrained(base_model, use_fast=False)

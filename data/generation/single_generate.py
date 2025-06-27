@@ -171,6 +171,13 @@ def main(args):
 
     model.eval()
 
+    if args.operation == 'only_dataset':
+        sources, targets = get_gen_dataset(args.dataset_name, args.max_sample, tokenizer)
+        # save as [["Beginners BBQ Class Taking Place in Missoula!\nDo you want to get better at making delicious BBQ? You will have the opportunity, put this on your cale", "ndar now. Thursday, September 22nd join World Class BBQ Champion, Tony Balay from Lonestar Smoke Rangers. He will be teaching a beginner level class for everyone who wants to get better with their culinary skills.\nHe will teach you everything you need to know to compete in a KCBS BBQ competition, including techniques, recipes, timelines, meat selection and trimming, plus smoker and fire information.\nThe cost to be in the class is $35 per person, and for spectators it is free. Included in the cost will be either a t-shirt or apron and you will be tasting samples of each meat that is prepared."]]
+        with open(args.out_path + f'/{args.dataset_name}_T{args.temperature}_N{args.max_new_tokens}_S{args.seed}_{args.max_sample}.json', 'w') as f:
+            for i in range(len(sources)):
+                f.write(json.dumps([sources[i], targets[i]]) + '\n')
+        return 
     # Get the generation dataset
     gen_dataset, data_collator = make_supervised_data_module(tokenizer, args.dataset_name, args.max_sample)
 
@@ -231,6 +238,7 @@ if __name__ == "__main__":
     parser.add_argument("--temperature", type=float, default=0.2, help="generation temperature")
     parser.add_argument("--max_new_tokens", type=int, default=1024, help="max new tokens")
     parser.add_argument("--return_seq_num", type=int, default=1, help="return seq num")
+    parser.add_argument("--operation", type=str, default='only_dataset', help="operation type, only_dataset or generate")
     args = parser.parse_args()
 
     if not os.path.exists(args.out_path):

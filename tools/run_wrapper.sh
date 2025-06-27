@@ -24,7 +24,7 @@ export TEST_ALL=$test_all
 export DATASET=$dataset
 export LIMIT=$limit
 export MODEL_PATH=${MODEL_PATH:-${MODEL_DIR}/${MODEL_NAME}}
-export THRESHOLD_PATH=${THRESHOLD:-"${DATA_DIR}/threshold/${MODEL_NAME}/sparse-${SPARSE}.json"}
+export THRESHOLD_PATH=${THRESHOLD_PATH:-"${DATA_DIR}/threshold/${MODEL_NAME}/sparse-${SPARSE}.json"}
 export QUANT=${QUANT:-0}
 export USE_LORA=${USE_LORA:-0}
 export LORA_CHECKPOINT=${LORA_CHECKPOINT:-${MODEL_PATH}}
@@ -73,7 +73,7 @@ for task in "${params_array[@]}"; do
         bash tools/test_task.sh
         export TEST_TASK=$test_task
         export TEST_ALL=$test_all
-        export LIMIT=$dataset
+        export LIMIT=$limit
         # test task
         bash tools/test_task.sh
     fi

@@ -21,19 +21,19 @@ deepspeed --hostfile=hostfile_local --no_ssh --node_rank=0 \
     --output_dir ${SAVE_PATH} \
     --logging_dir ${LOGGING_DIR} \
     --seed 42 \
-    --num_train_epochs 2 \
+    --num_train_epochs 4 \
     --model_max_length 512 \
     --bf16 True \
     --per_device_train_batch_size 4 \
     --per_device_eval_batch_size 4 \
     --gradient_accumulation_steps 8 \
-    --gradient_checkpointing False \
+    --gradient_checkpointing True \
     --load_best_model_at_end False \
     --save_strategy "epoch" \
     --save_total_limit 2 \
     --weight_decay 0. \
     --logging_steps 1 \
-    --learning_rate 0.0002 \
+    --learning_rate 1e-6 \
     --report_to "none" \
     --quant ${QUANT} \
     --bits 4 \

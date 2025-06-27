@@ -29,8 +29,8 @@ def parse_args():
     parser.add_argument('--file_path',type=str, default=0,help='file_path')
     parser.add_argument('--do_generation', action='store_true', default=False, help='Enable generation mode')
     parser.add_argument('--save_activations', action='store_true', default=False, help='Enable save activation mode')
-    parser.add_argument('--sparse',type=int,default=0.5)
-    parser.add_argument('--test_all',type=bool,default=0)
+    parser.add_argument('--sparse',type=float,default=0.5)
+    parser.add_argument('--test_all',type=int,default=0)
     args = parser.parse_args()
     return args
 
@@ -111,7 +111,7 @@ def main():
     limit = None if args.limit <= 0  else args.limit
     
     task_list = [args.task, 'wikitext']
-    
+    print('test_all', args.test_all)
     if args.test_all:
         sp_configs = [(0,0,0,0), (0.5,0.5,0,0), (0.6,0.6,0,0), (0.7,0.7,0,0), (0.8,0.8,0,0),]
     else :

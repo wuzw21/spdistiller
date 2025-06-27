@@ -156,7 +156,7 @@ def debug_test(model):
                     
 
 
-def eval_for_sp_config(model_path, model, task_list, num_shot, batch_size, limit, sp_config, threshold_path, strategy):
+def eval_for_sp_config(model_path, model, task_list, num_shot, batch_size, limit, sp_config, threshold_path, strategy, ilayer):
     print("begin : sp_config: ", sp_config, "num_shot: ", num_shot)
 
     # set sparsity
@@ -168,6 +168,8 @@ def eval_for_sp_config(model_path, model, task_list, num_shot, batch_size, limit
     global_weight_preditor.set_sparsity_threshold(attn_sp, threshold_path)
     global_weight_preditor.set_sp_config(attn_sp,mlp_sp,w_p)
     global_weight_preditor.set_sparsity_strategy(strategy)
+    for j in range(7) :
+        global_weight_preditor.sp[ilayer][j] = 0
 
     # eval
     results = eval(model, task_list, num_shot, batch_size, limit)
@@ -177,6 +179,8 @@ def eval_for_sp_config(model_path, model, task_list, num_shot, batch_size, limit
     print("results")
     for result in results :
         print(result)
+    with open('test_all.txt','a') as f:
+        f.write(results)
     debug_test(model)
     print('='*40)
     
@@ -242,14 +246,15 @@ def main():
     print('sp_configs: ',sp_configs)
     for sp_config in sp_configs:
         for num_shot in num_shots: 
-            if args.test_all:
-                data_dir = os.environ.get('DATA_DIR')
-                model_name = os.environ.get('MODEL_NAME')
-                sparse = sp_config[0]
-                threshold_path = f'{data_dir}/threshold/{model_name}/sparse-{sparse}.json'
-            else :
-                threshold_path = args.threshold_path
-            eval_for_sp_config(args.model, model, task_list, num_shot, batch_size, limit, sp_config, threshold_path, args.sparse_strategy)
+            for i in range(0,32) :
+                if args.test_all:
+                    data_dir = os.environ.get('DATA_DIR')
+                    model_name = os.environ.get('MODEL_NAME')
+                    sparse = sp_config[0]
+                    threshold_path = f'{data_dir}/threshold/{model_name}/sparse-{sparse}.json'
+                else :
+                    threshold_path = args.threshold_path
+                eval_for_sp_config(args.model, model, task_list, num_shot, batch_size, limit, sp_config, threshold_path, args.sparse_strategy,i)
 
 
 if __name__ == "__main__":

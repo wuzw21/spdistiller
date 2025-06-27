@@ -51,13 +51,15 @@ class WeightPredictor(object):
         self.attn_sp = 0.0
         self.mlp_sp = 0.0
         self.w_p = 0.0
-        self.threshold = [[0.0] * self.weight_counters[_] for _ in range(self.num_layers)]
+        self.threshold = [[{} for x in range(self.num_weights)] for _ in range(self.num_layers)]
+        self.sp_config = [[0.0 for _ in range(self.weight_counters[layer_id])] for layer_id in range(self.num_layers)]
         self.do_pre_prediction = 0
 
         # CROSS_LAYER_TEST
         self.preds = [[[] for _ in range(self.weight_counters[layer_id])] for layer_id in range(self.num_layers)]
         self.wmetrics = [[None for _ in range(self.weight_counters[layer_id])] for layer_id in range(self.num_layers)]
         self.similarity_results = [[] * self.weight_counters[_] for _ in range(self.num_layers)]
+        self.activation_counts = [[None for _ in range(self.weight_counters[layer_id])] for layer_id in range(self.num_layers)]
 
     def set_cal_activations(self, file_path) :
         print('set activations', self.num_layers,self.num_weights)
@@ -69,8 +71,15 @@ class WeightPredictor(object):
 
     def to_bf16(self):
         self.dtype = torch.bfloat16
-        
-    def set_sparsity_threshold(self, file_path=None) :
+    
+    def set_block_sp_config(self, attn_sp,mlp_sp, w_p):
+        self.attn_sp = attn_sp
+        print(f"Set sparsity: attn {self.attn_sp}, mlp {self.mlp_sp}, w {self.w_p}")
+        for i in range(self.num_layers):
+            for j in range(self.num_weights):
+                self.sp_config[i][j] = attn_sp
+
+    def set_sparsity_threshold(self, sp, file_path=None) :
         print('set_sparsity_threshold')
         if file_path == None :
             file_path = os.environ.get('THRESHOLD_PATH',None)
@@ -78,7 +87,6 @@ class WeightPredictor(object):
             print('there is none this file.')
         #     file_path = f'./threshold/{self.model_name}/{self.model_name}-{self.attn_sp}.txt'
         print('threshold_path', file_path)
-        self.threshold = [[0.0] * self.num_weights for _ in range(self.num_layers)] 
         if os.path.exists(file_path):
             with open(file_path, 'r') as f:
                 sparsity_all_dict = json.load(f)
@@ -88,7 +96,11 @@ class WeightPredictor(object):
                 if layer_key in sparsity_all_dict:
                     layer_thresholds = sparsity_all_dict[layer_key]
                     for j in range(self.num_weights) :
-                        self.threshold[i][j] = layer_thresholds.get(f"{j}", 0.0)
+                        ds = layer_thresholds.get(f"{j}", None)
+                        if type(ds) == dict :
+                            self.threshold[i][j] = layer_thresholds.get(f"{j}", 0.0)
+                        else :
+                            self.threshold[i][j][str(sp)] = layer_thresholds.get(f"{j}", 0.0)
                         
             self.sparsity_strategy = 'Static'
             # print(self.threshold)
@@ -97,8 +109,9 @@ class WeightPredictor(object):
             self.sparsity_strategy = 'Dynamic'
         print('sparsity_strategy : ', self.sparsity_strategy)
          
-    def score_to_mask(self, x, sp, thres=0.0, ilayer=-1):
+    def score_to_mask(self, x, sp, thres=0.0, ilayer=-1,iweight=0):
         # choose threshold
+        a = thres
         if self.sparsity_strategy == 'Dynamic':
             if len(x.shape) == 2:
                 thres = x.sort(dim=-1).values[:, int(x.shape[-1] * sp)].view(x.shape[0], 1)
@@ -108,8 +121,18 @@ class WeightPredictor(object):
                 raise ValueError("Length of x shape must be 2 or 3")
         else:
             pass
-
         # all activation in layer 0
+        
+        if os.environ.get('DEBUG_CROSSLAYER','0') != '0' :
+            # 3维张量: [batch_size, seq_len, feature_dim]
+            # print(x.size(), thres)
+            sorted_x = x.sort(dim=-1).values
+            idx = int(x.shape[-1] * sp)
+            row_stats = sorted_x[:, :, idx]  # 形状: [batch_size, seq_len]
+            stats_list = row_stats.view(-1).tolist()  # 展平为1维列表
+            self.preds[ilayer][iweight].extend(stats_list)
+            if ilayer <= 20 :
+                thres = row_stats.mean().item()
         r = os.environ.get('ACTIVATE_LAYER' , '0') 
         if ilayer >= 0 and ilayer <= int(r): 
             # print('YES')
@@ -133,26 +156,32 @@ class WeightPredictor(object):
         sp = self.attn_sp
         # Prediction.
         x = x.abs()
-        threshold = self.threshold[ilayer][iweight]
-        preds, C = self.score_to_mask(x, sp, threshold, ilayer)
+        threshold = self.threshold[ilayer][iweight].get(str(self.sp_config[ilayer][iweight]), 0.0)
+        preds, C = self.score_to_mask(x, sp, threshold, ilayer,iweight)
        
         # predictor
-        if self.do_pre_prediction:
-            self.preds[ilayer][iweight] = preds
-            if ilayer > 0:
-                prev_preds = self.preds[ilayer - 1][iweight]
-                if prev_preds is not None:
-                    device = preds.device
-                    prev_preds = prev_preds.to(device)
-                    current_ones = preds.sum().item()
-                    if current_ones > 0:
-                        common_ones = (preds & prev_preds).sum().item()
-                        similarity = common_ones / current_ones
-                        # print(f'ilayer {ilayer} iweight {iweight} similarity {similarity}')
-                        self.similarity_results[ilayer][iweight].append(similarity)
-                    self.preds[ilayer - 1][iweight] = None # Clear
-                else :
-                    pass
+        if os.environ.get('DEBUG_CROSSLAYER','0') != '0' :
+            # 计算前面thres的结果，并和threshold进行比较
+            elements = self.preds[ilayer][iweight]  # 取最后 50 个元素，或整个列表如果长度不足
+            average = sum(elements) / len(elements)  # 计算平均值
+            print('ilayer','iweight',ilayer,iweight,average-threshold)
+            pass
+            # self.preds[ilayer][iweight] = preds
+            # if ilayer > 0:
+            #     prev_preds = self.preds[ilayer - 1][iweight]
+            #     if prev_preds is not None:
+            #         device = preds.device
+            #         prev_preds = prev_preds.to(device)
+            #         # print(preds, prev_preds)
+            #         current_ones = preds.sum().item()
+            #         if current_ones > 0:
+            #             common_ones = (preds & prev_preds).sum().item()
+            #             similarity = common_ones / current_ones
+            #             print(f'ilayer {ilayer} iweight {iweight} similarity {similarity}')
+            #             # self.similarity_results[ilayer][iweight].append(similarity)
+            #         self.preds[ilayer - 1][iweight] = None # Clear
+            #     else :
+            #         pass
 
         return preds, C
 
@@ -160,6 +189,7 @@ class WeightPredictor(object):
         return x if pred is None else x * pred.to(x.dtype).to(x.device)
     
     def generate_pred(self, ilayer, iweight, x) :
+        # print('grab ', ilayer, iweight, x.size())
         if self.DO_CAL_ACTIVATIONS == True:
             self.activations.grab_activations(x, ilayer, iweight)
         if self.is_sparse_infer() == False:
@@ -176,14 +206,22 @@ class WeightPredictor(object):
                 self.sparse_params[0] += total_elements
                 self.sparse_params[1] += zero_elements
 
+                per_channel_counts = pred.sum(dim=(0, 1))
+                # print('per_channel_counts', per_channel_counts)
+                if self.activation_counts[ilayer][iweight] is None:
+                    self.activation_counts[ilayer][iweight] = per_channel_counts
+                else:
+                    self.activation_counts[ilayer][iweight] += per_channel_counts
+
+
                 # TODO : 计算pred中1值出现的协方差，记录到self.debug_pred[ilayer][iweight]里
                 # if ilayer == 1 and iweight == 0:
-                    # print(pred.size(),pred,x.size(),x)
+                #     print(pred.size(),pred,x.size(),x)
                 
                 
 
-                # zero_ratio = zero_elements / total_elements
-                # print(f"Layer {ilayer}, Weight {iweight}: Zero ratio in pred = {zero_ratio:.4f}")
+                zero_ratio = zero_elements / total_elements
+                print(f"Layer {ilayer}, Weight {iweight}: Zero ratio in pred = {zero_ratio:.4f}")
 
             # print(os.environ.get('BACKWARD_STRATEGY'))
             # return self.apply_pred(x, pred)
@@ -197,6 +235,7 @@ class WeightPredictor(object):
         self.attn_sp = attn_sp
         self.mlp_sp = mlp_sp
         self.w_p = w_p
+        self.sp_config = [[attn_sp for _ in range(self.weight_counters[layer_id])] for layer_id in range(self.num_layers)]
         print(f"Set sparsity: attn {self.attn_sp}, mlp {self.mlp_sp}, w {self.w_p}")
 
     def set_do_pre_prediction(self, do_pre_prediction):
